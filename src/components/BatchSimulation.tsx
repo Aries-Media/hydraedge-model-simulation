@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { SimulationResult, runSimulation } from "@/utils/simulation";
 import { SimulationResults } from "@/components/SimulationResults";
+import { SimulationForm } from "@/components/SimulationForm";
 import {
   Collapsible,
   CollapsibleContent,
@@ -18,6 +19,11 @@ export function BatchSimulation() {
   const [isLoading, setIsLoading] = useState(false);
   const [batchResults, setBatchResults] = useState<SimulationResult[]>([]);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [params, setParams] = useState({
+    clientsNumber: 500,
+    tradesPerClient: 250,
+    challengeCost: 900,
+  });
   const { toast } = useToast();
 
   const runBatchSimulation = async () => {
@@ -27,11 +33,7 @@ export function BatchSimulation() {
 
     try {
       for (let i = 0; i < n; i++) {
-        const result = runSimulation({
-          clientsNumber: 500,
-          tradesPerClient: 250,
-          challengeCost: 900,
-        });
+        const result = runSimulation(params);
         results.push(result);
       }
 
@@ -82,6 +84,17 @@ export function BatchSimulation() {
 
   return (
     <div className="space-y-8">
+      <SimulationForm 
+        onSubmit={(values) => {
+          setParams(values);
+          toast({
+            title: "Parameters Updated",
+            description: "Simulation parameters have been updated.",
+          });
+        }} 
+        isLoading={isLoading}
+      />
+
       <div className="flex gap-4 items-end">
         <div className="space-y-2">
           <Label htmlFor="numSimulations">Number of Simulations</Label>
