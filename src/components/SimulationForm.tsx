@@ -32,9 +32,10 @@ const formSchema = z.object({
 interface SimulationFormProps {
   onSubmit: (values: { clientsNumber: number; tradesPerClient: number; challengeCost: number }) => void;
   isLoading?: boolean;
+  showSubmitButton?: boolean;
 }
 
-export function SimulationForm({ onSubmit, isLoading }: SimulationFormProps) {
+export function SimulationForm({ onSubmit, isLoading, showSubmitButton = true }: SimulationFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -59,7 +60,7 @@ export function SimulationForm({ onSubmit, isLoading }: SimulationFormProps) {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form onChange={showSubmitButton ? undefined : () => form.handleSubmit(handleSubmit)()} onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <div className="flex flex-wrap gap-4">
               <FormField
                 control={form.control}
@@ -110,9 +111,11 @@ export function SimulationForm({ onSubmit, isLoading }: SimulationFormProps) {
                 )}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Running Simulation..." : "Run Simulation"}
-            </Button>
+            {showSubmitButton && (
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Running Simulation..." : "Run Simulation"}
+              </Button>
+            )}
           </form>
         </Form>
       </CardContent>

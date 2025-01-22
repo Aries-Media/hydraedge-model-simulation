@@ -93,6 +93,7 @@ export function BatchSimulation() {
           });
         }} 
         isLoading={isLoading}
+        showSubmitButton={false}
       />
 
       <div className="flex gap-4 items-end">
