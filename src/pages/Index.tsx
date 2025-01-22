@@ -53,11 +53,8 @@ const Index = () => {
       <div className="container mx-auto space-y-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold tracking-tight">
-            Trading Simulation Dashboard
+            Hydraedge Model Simulation
           </h1>
-          <p className="text-muted-foreground mt-2">
-            Configure parameters and run trading simulations
-          </p>
         </div>
         
         <Tabs defaultValue="single" className="w-full">

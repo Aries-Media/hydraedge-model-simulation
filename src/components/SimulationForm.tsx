@@ -101,135 +101,142 @@ export function SimulationForm({ onSubmit, isLoading, showSubmitButton = true }:
       <CardContent>
         <Form {...form}>
           <form onChange={showSubmitButton ? undefined : () => form.handleSubmit(handleSubmit)()} onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <div className="flex flex-wrap gap-4">
-              <FormField
-                control={form.control}
-                name="clientsNumber"
-                render={({ field }) => (
-                  <FormItem className="flex-1 min-w-[200px]">
-                    <FormLabel>Number of Clients</FormLabel>
-                    <FormControl>
-                      <Input type="text" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Enter the number of clients to simulate
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="tradesPerClient"
-                render={({ field }) => (
-                  <FormItem className="flex-1 min-w-[200px]">
-                    <FormLabel>Trades per Client</FormLabel>
-                    <FormControl>
-                      <Input type="text" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Enter the number of trades per client
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="challengeCost"
-                render={({ field }) => (
-                  <FormItem className="flex-1 min-w-[200px]">
-                    <FormLabel>Challenge Cost (€)</FormLabel>
-                    <FormControl>
-                      <Input type="text" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Enter the cost of each challenge
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="tpGainChallenge"
-                render={({ field }) => (
-                  <FormItem className="flex-1 min-w-[200px]">
-                    <FormLabel>TP Gain Challenge (€)</FormLabel>
-                    <FormControl>
-                      <Input type="text" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Take profit gain during challenge
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="slLossChallenge"
-                render={({ field }) => (
-                  <FormItem className="flex-1 min-w-[200px]">
-                    <FormLabel>SL Loss Challenge (€)</FormLabel>
-                    <FormControl>
-                      <Input type="text" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Stop loss amount during challenge
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="tpGainReal"
-                render={({ field }) => (
-                  <FormItem className="flex-1 min-w-[200px]">
-                    <FormLabel>TP Gain Real (€)</FormLabel>
-                    <FormControl>
-                      <Input type="text" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Take profit gain during real account
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="slLossReal"
-                render={({ field }) => (
-                  <FormItem className="flex-1 min-w-[200px]">
-                    <FormLabel>SL Loss Real (€)</FormLabel>
-                    <FormControl>
-                      <Input type="text" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Stop loss amount during real account
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="propPayout"
-                render={({ field }) => (
-                  <FormItem className="flex-1 min-w-[200px]">
-                    <FormLabel>Prop Payout (€)</FormLabel>
-                    <FormControl>
-                      <Input type="text" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Payout amount for prop accounts
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className="space-y-6">
+              {/* First row */}
+              <div className="flex flex-wrap gap-4">
+                <FormField
+                  control={form.control}
+                  name="clientsNumber"
+                  render={({ field }) => (
+                    <FormItem className="flex-1 min-w-[200px]">
+                      <FormLabel>Number of Clients</FormLabel>
+                      <FormControl>
+                        <Input type="text" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Enter the number of clients to simulate
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="tradesPerClient"
+                  render={({ field }) => (
+                    <FormItem className="flex-1 min-w-[200px]">
+                      <FormLabel>Trades per Client</FormLabel>
+                      <FormControl>
+                        <Input type="text" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Enter the number of trades per client
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="challengeCost"
+                  render={({ field }) => (
+                    <FormItem className="flex-1 min-w-[200px]">
+                      <FormLabel>Challenge Cost (€)</FormLabel>
+                      <FormControl>
+                        <Input type="text" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Enter the cost of each challenge
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Second row */}
+              <div className="flex flex-wrap gap-4">
+                <FormField
+                  control={form.control}
+                  name="tpGainChallenge"
+                  render={({ field }) => (
+                    <FormItem className="flex-1 min-w-[200px]">
+                      <FormLabel>TP Gain Challenge (€)</FormLabel>
+                      <FormControl>
+                        <Input type="text" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Take profit gain during challenge
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="slLossChallenge"
+                  render={({ field }) => (
+                    <FormItem className="flex-1 min-w-[200px]">
+                      <FormLabel>SL Loss Challenge (€)</FormLabel>
+                      <FormControl>
+                        <Input type="text" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Stop loss amount during challenge
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="tpGainReal"
+                  render={({ field }) => (
+                    <FormItem className="flex-1 min-w-[200px]">
+                      <FormLabel>TP Gain Real (€)</FormLabel>
+                      <FormControl>
+                        <Input type="text" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Take profit gain during real account
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="slLossReal"
+                  render={({ field }) => (
+                    <FormItem className="flex-1 min-w-[200px]">
+                      <FormLabel>SL Loss Real (€)</FormLabel>
+                      <FormControl>
+                        <Input type="text" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Stop loss amount during real account
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="propPayout"
+                  render={({ field }) => (
+                    <FormItem className="flex-1 min-w-[200px]">
+                      <FormLabel>Prop Payout (€)</FormLabel>
+                      <FormControl>
+                        <Input type="text" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Payout amount for prop accounts
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
             {showSubmitButton && (
               <Button type="submit" className="w-full" disabled={isLoading}>
