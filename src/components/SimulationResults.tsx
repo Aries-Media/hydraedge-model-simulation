@@ -28,6 +28,18 @@ export function SimulationResults({
 }: SimulationResultsProps) {
   if (results.length === 0) return null;
 
+  // Calculate averages for numeric columns
+  const averages = {
+    netProfit: results.reduce((acc, curr) => acc + curr.netProfit, 0) / results.length,
+    challengesBought: results.reduce((acc, curr) => acc + curr.challengesBought, 0) / results.length,
+    costOfChallenges: results.reduce((acc, curr) => acc + curr.costOfChallenges, 0) / results.length,
+    propWithdraw: results.reduce((acc, curr) => acc + curr.propWithdraw, 0) / results.length,
+    brokerWithdraw: results.reduce((acc, curr) => acc + curr.brokerWithdraw, 0) / results.length,
+    tradesInReal: results.reduce((acc, curr) => acc + curr.tradesInReal, 0) / results.length,
+    payouts: results.reduce((acc, curr) => acc + curr.payouts, 0) / results.length,
+    payoutPercentage: results.reduce((acc, curr) => acc + curr.payoutPercentage, 0) / results.length,
+  };
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -93,6 +105,33 @@ export function SimulationResults({
                   </TableCell>
                 </TableRow>
               ))}
+              <TableRow className="font-medium bg-muted/50">
+                <TableCell>Average</TableCell>
+                <TableCell className="text-right">
+                  {averages.netProfit.toFixed(2)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {averages.challengesBought.toFixed(2)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {averages.costOfChallenges.toFixed(2)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {averages.propWithdraw.toFixed(2)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {averages.brokerWithdraw.toFixed(2)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {averages.tradesInReal.toFixed(2)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {averages.payouts.toFixed(2)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {averages.payoutPercentage.toFixed(2)}%
+                </TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </div>
