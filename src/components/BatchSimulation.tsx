@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { SimulationResult, runSimulation } from "@/utils/simulation";
+import { SimulationResults } from "@/components/SimulationResults";
 import {
   Collapsible,
   CollapsibleContent,
