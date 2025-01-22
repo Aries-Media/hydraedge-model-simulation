@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   clientsNumber: z.string().refine((val) => {
@@ -27,10 +28,39 @@ const formSchema = z.object({
     const num = parseInt(val);
     return !isNaN(num) && num >= 1 && num <= 10000;
   }, "Must be a number between 1 and 10000"),
+  tpGainChallenge: z.string().refine((val) => {
+    const num = parseInt(val);
+    return !isNaN(num) && num >= 1;
+  }, "Must be a positive number"),
+  slLossChallenge: z.string().refine((val) => {
+    const num = parseInt(val);
+    return !isNaN(num) && num >= 1;
+  }, "Must be a positive number"),
+  tpGainReal: z.string().refine((val) => {
+    const num = parseInt(val);
+    return !isNaN(num) && num >= 1;
+  }, "Must be a positive number"),
+  slLossReal: z.string().refine((val) => {
+    const num = parseInt(val);
+    return !isNaN(num) && num >= 1;
+  }, "Must be a positive number"),
+  propPayout: z.string().refine((val) => {
+    const num = parseInt(val);
+    return !isNaN(num) && num >= 1;
+  }, "Must be a positive number"),
 });
 
 interface SimulationFormProps {
-  onSubmit: (values: { clientsNumber: number; tradesPerClient: number; challengeCost: number }) => void;
+  onSubmit: (values: {
+    clientsNumber: number;
+    tradesPerClient: number;
+    challengeCost: number;
+    tpGainChallenge: number;
+    slLossChallenge: number;
+    tpGainReal: number;
+    slLossReal: number;
+    propPayout: number;
+  }) => void;
   isLoading?: boolean;
   showSubmitButton?: boolean;
 }
@@ -42,6 +72,11 @@ export function SimulationForm({ onSubmit, isLoading, showSubmitButton = true }:
       clientsNumber: "500",
       tradesPerClient: "250",
       challengeCost: "900",
+      tpGainChallenge: "1725",
+      slLossChallenge: "1500",
+      tpGainReal: "2850",
+      slLossReal: "750",
+      propPayout: "1600",
     },
   });
 
@@ -50,6 +85,11 @@ export function SimulationForm({ onSubmit, isLoading, showSubmitButton = true }:
       clientsNumber: parseInt(values.clientsNumber),
       tradesPerClient: parseInt(values.tradesPerClient),
       challengeCost: parseInt(values.challengeCost),
+      tpGainChallenge: parseInt(values.tpGainChallenge),
+      slLossChallenge: parseInt(values.slLossChallenge),
+      tpGainReal: parseInt(values.tpGainReal),
+      slLossReal: parseInt(values.slLossReal),
+      propPayout: parseInt(values.propPayout),
     });
   };
 
@@ -110,10 +150,97 @@ export function SimulationForm({ onSubmit, isLoading, showSubmitButton = true }:
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="tpGainChallenge"
+                render={({ field }) => (
+                  <FormItem className="flex-1 min-w-[200px]">
+                    <FormLabel>TP Gain Challenge (€)</FormLabel>
+                    <FormControl>
+                      <Input type="text" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Take profit gain during challenge
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="slLossChallenge"
+                render={({ field }) => (
+                  <FormItem className="flex-1 min-w-[200px]">
+                    <FormLabel>SL Loss Challenge (€)</FormLabel>
+                    <FormControl>
+                      <Input type="text" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Stop loss amount during challenge
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="tpGainReal"
+                render={({ field }) => (
+                  <FormItem className="flex-1 min-w-[200px]">
+                    <FormLabel>TP Gain Real (€)</FormLabel>
+                    <FormControl>
+                      <Input type="text" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Take profit gain during real account
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="slLossReal"
+                render={({ field }) => (
+                  <FormItem className="flex-1 min-w-[200px]">
+                    <FormLabel>SL Loss Real (€)</FormLabel>
+                    <FormControl>
+                      <Input type="text" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Stop loss amount during real account
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="propPayout"
+                render={({ field }) => (
+                  <FormItem className="flex-1 min-w-[200px]">
+                    <FormLabel>Prop Payout (€)</FormLabel>
+                    <FormControl>
+                      <Input type="text" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Payout amount for prop accounts
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             {showSubmitButton && (
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Running Simulation..." : "Run Simulation"}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Running Simulation...
+                  </>
+                ) : (
+                  "Run Simulation"
+                )}
               </Button>
             )}
           </form>

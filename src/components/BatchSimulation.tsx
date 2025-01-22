@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SimulationResult, runSimulation } from "@/utils/simulation";
 import { SimulationResults } from "@/components/SimulationResults";
 import { SimulationForm } from "@/components/SimulationForm";
+import { Loader2 } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -23,6 +24,11 @@ export function BatchSimulation() {
     clientsNumber: 500,
     tradesPerClient: 250,
     challengeCost: 900,
+    tpGainChallenge: 1725,
+    slLossChallenge: 1500,
+    tpGainReal: 2850,
+    slLossReal: 750,
+    propPayout: 1600,
   });
   const { toast } = useToast();
 
@@ -109,7 +115,14 @@ export function BatchSimulation() {
           />
         </div>
         <Button onClick={runBatchSimulation} disabled={isLoading}>
-          {isLoading ? "Running..." : "Run Batch Simulation"}
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Running...
+            </>
+          ) : (
+            "Run Batch Simulation"
+          )}
         </Button>
       </div>
 

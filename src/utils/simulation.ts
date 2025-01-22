@@ -2,6 +2,11 @@ export interface SimulationParams {
   clientsNumber: number;
   tradesPerClient: number;
   challengeCost: number;
+  tpGainChallenge: number;
+  slLossChallenge: number;
+  tpGainReal: number;
+  slLossReal: number;
+  propPayout: number;
 }
 
 export interface SimulationResult {
@@ -22,7 +27,17 @@ export interface SimulationResult {
 }
 
 export const runSimulation = (params: SimulationParams): SimulationResult => {
-  const { clientsNumber, tradesPerClient, challengeCost } = params;
+  const { 
+    clientsNumber, 
+    tradesPerClient, 
+    challengeCost,
+    tpGainChallenge,
+    slLossChallenge,
+    tpGainReal,
+    slLossReal,
+    propPayout
+  } = params;
+  
   let trades: { Outcome: string }[] = [];
   let tradeReal = 0;
   let payouts = 0;
@@ -44,31 +59,31 @@ export const runSimulation = (params: SimulationParams): SimulationResult => {
   trades.forEach((trade) => {
     if (slCounter === 0) {
       if (trade.Outcome === "TP") {
-        score += 1725;
-        brokerGains += 1725;
+        score += tpGainChallenge;
+        brokerGains += tpGainChallenge;
         challengesBought++;
         challengeLost++;
       } else {
         slCounter += 1;
-        score -= 1500;
-        brokerGains -= 1500;
+        score -= slLossChallenge;
+        brokerGains -= slLossChallenge;
       }
     } else if (slCounter >= 1 && slCounter < 4) {
       if (trade.Outcome === "TP") {
-        score += 1500;
-        brokerGains += 1500;
+        score += tpGainChallenge;
+        brokerGains += tpGainChallenge;
         slCounter -= 1;
       } else {
         slCounter += 1;
-        score -= 1500;
-        brokerGains -= 1500;
+        score -= slLossChallenge;
+        brokerGains -= slLossChallenge;
       }
     } else {
       tradeReal += 1;
       if (trade.Outcome === "TP") {
         tpCounter += 1;
-        score += 2850;
-        brokerGains += 2850;
+        score += tpGainReal;
+        brokerGains += tpGainReal;
 
         if (tpCounter === 2) {
           refunded = false;
@@ -80,18 +95,18 @@ export const runSimulation = (params: SimulationParams): SimulationResult => {
       } else {
         if (tpCounter === 0) {
           payouts += 1;
-          score += 750;
+          score += slLossReal;
           if (!refunded) {
             refunded = true;
             score += challengeCost;
             refunds += challengeCost;
           }
-          propPayouts += 1600;
-          brokerGains -= 850;
+          propPayouts += propPayout;
+          brokerGains -= slLossReal;
         } else {
           tpCounter -= 1;
-          score -= 2850;
-          brokerGains -= 2850;
+          score -= tpGainReal;
+          brokerGains -= tpGainReal;
         }
       }
     }
