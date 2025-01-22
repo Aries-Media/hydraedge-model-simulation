@@ -15,6 +15,11 @@ const Index = () => {
     clientsNumber: number;
     tradesPerClient: number;
     challengeCost: number;
+    tpGainChallenge: number;
+    slLossChallenge: number;
+    tpGainReal: number;
+    slLossReal: number;
+    propPayout: number;
   }) => {
     setIsLoading(true);
     try {
