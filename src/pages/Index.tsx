@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { SimulationForm } from "@/components/SimulationForm";
 import { SimulationResults } from "@/components/SimulationResults";
-import { SimulationResult, runSimulation } from "@/utils/simulation";
+import { BatchSimulation } from "@/components/BatchSimulation";
 import { useToast } from "@/hooks/use-toast";
+import { SimulationResult, runSimulation } from "@/utils/simulation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Index = () => {
   const [results, setResults] = useState<SimulationResult[]>([]);
@@ -52,13 +54,27 @@ const Index = () => {
             Configure parameters and run trading simulations
           </p>
         </div>
-        <div className="flex flex-col items-center gap-8">
-          <SimulationForm onSubmit={handleSimulation} isLoading={isLoading} />
-          <SimulationResults
-            results={results}
-            onClearResults={handleClearResults}
-          />
-        </div>
+        
+        <Tabs defaultValue="single" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="single">Single Simulation</TabsTrigger>
+            <TabsTrigger value="batch">Batch Simulations</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="single" className="space-y-8">
+            <div className="flex flex-col items-center gap-8">
+              <SimulationForm onSubmit={handleSimulation} isLoading={isLoading} />
+              <SimulationResults
+                results={results}
+                onClearResults={handleClearResults}
+              />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="batch">
+            <BatchSimulation />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
