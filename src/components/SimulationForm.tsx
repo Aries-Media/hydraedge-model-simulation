@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const formSchema = z.object({
   clientsNumber: z.string().refine((val) => {
@@ -65,14 +66,18 @@ interface SimulationFormProps {
   isLoading?: boolean;
   showSubmitButton?: boolean;
   hideClientsField?: boolean;
+  hideTradesField?: boolean;
 }
 
 export function SimulationForm({ 
   onSubmit, 
   isLoading, 
   showSubmitButton = true,
-  hideClientsField = false
+  hideClientsField = false,
+  hideTradesField = false
 }: SimulationFormProps) {
+  const { t } = useLanguage();
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -103,7 +108,7 @@ export function SimulationForm({
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Simulation Parameters</CardTitle>
+        <CardTitle>{t("simulationParameters")}</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -117,12 +122,30 @@ export function SimulationForm({
                     name="clientsNumber"
                     render={({ field }) => (
                       <FormItem className="flex-1 min-w-[200px]">
-                        <FormLabel>Number of Clients</FormLabel>
+                        <FormLabel>{t("numberOfClients")}</FormLabel>
                         <FormControl>
                           <Input type="text" {...field} />
                         </FormControl>
                         <FormDescription>
-                          Enter the number of clients to simulate
+                          {t("numberOfClients")}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                {!hideTradesField && (
+                  <FormField
+                    control={form.control}
+                    name="tradesPerClient"
+                    render={({ field }) => (
+                      <FormItem className="flex-1 min-w-[200px]">
+                        <FormLabel>{t("tradesPerClient")}</FormLabel>
+                        <FormControl>
+                          <Input type="text" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          {t("tradesPerClient")}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -131,31 +154,15 @@ export function SimulationForm({
                 )}
                 <FormField
                   control={form.control}
-                  name="tradesPerClient"
-                  render={({ field }) => (
-                    <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>Trades per Client</FormLabel>
-                      <FormControl>
-                        <Input type="text" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Enter the number of trades per client
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
                   name="challengeCost"
                   render={({ field }) => (
                     <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>Challenge Cost (€)</FormLabel>
+                      <FormLabel>{t("challengeCost")}</FormLabel>
                       <FormControl>
                         <Input type="text" {...field} />
                       </FormControl>
                       <FormDescription>
-                        Enter the cost of each challenge
+                        {t("challengeCost")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -170,12 +177,12 @@ export function SimulationForm({
                   name="tpGainChallenge"
                   render={({ field }) => (
                     <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>TP Gain Challenge (€)</FormLabel>
+                      <FormLabel>{t("tpGainChallenge")}</FormLabel>
                       <FormControl>
                         <Input type="text" {...field} />
                       </FormControl>
                       <FormDescription>
-                        Take profit gain during challenge
+                        {t("tpGainChallenge")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -186,12 +193,12 @@ export function SimulationForm({
                   name="slLossChallenge"
                   render={({ field }) => (
                     <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>SL Loss Challenge (€)</FormLabel>
+                      <FormLabel>{t("slLossChallenge")}</FormLabel>
                       <FormControl>
                         <Input type="text" {...field} />
                       </FormControl>
                       <FormDescription>
-                        Stop loss amount during challenge
+                        {t("slLossChallenge")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -202,12 +209,12 @@ export function SimulationForm({
                   name="tpGainReal"
                   render={({ field }) => (
                     <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>TP Gain Real (€)</FormLabel>
+                      <FormLabel>{t("tpGainReal")}</FormLabel>
                       <FormControl>
                         <Input type="text" {...field} />
                       </FormControl>
                       <FormDescription>
-                        Take profit gain during real account
+                        {t("tpGainReal")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -218,12 +225,12 @@ export function SimulationForm({
                   name="slLossReal"
                   render={({ field }) => (
                     <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>SL Loss Real (€)</FormLabel>
+                      <FormLabel>{t("slLossReal")}</FormLabel>
                       <FormControl>
                         <Input type="text" {...field} />
                       </FormControl>
                       <FormDescription>
-                        Stop loss amount during real account
+                        {t("slLossReal")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -234,12 +241,12 @@ export function SimulationForm({
                   name="propPayout"
                   render={({ field }) => (
                     <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>Prop Payout (€)</FormLabel>
+                      <FormLabel>{t("propPayout")}</FormLabel>
                       <FormControl>
                         <Input type="text" {...field} />
                       </FormControl>
                       <FormDescription>
-                        Payout amount for prop accounts
+                        {t("propPayout")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -252,10 +259,10 @@ export function SimulationForm({
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Running Simulation...
+                    {t("runningSimulation")}
                   </>
                 ) : (
-                  "Run Simulation"
+                  t("runSimulation")
                 )}
               </Button>
             )}

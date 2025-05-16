@@ -4,11 +4,13 @@ import { SimulationForm } from "@/components/SimulationForm";
 import { CustomerResults } from "@/components/CustomerResults";
 import { useToast } from "@/hooks/use-toast";
 import { SimulationResult, runSimulation } from "@/utils/simulation";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function CustomerView() {
   const [results, setResults] = useState<SimulationResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleSimulation = async (values: {
     clientsNumber: number;
@@ -27,13 +29,13 @@ export function CustomerView() {
       const result = runSimulation(customerValues);
       setResults((prev) => [result, ...prev]);
       toast({
-        title: "Simulation Complete",
-        description: `Net Profit: €${result.netProfit.toFixed(2)}`,
+        title: t("simulationComplete"),
+        description: `${t("netProfit")}: €${result.netProfit.toFixed(2)}`,
       });
     } catch (error) {
       toast({
-        title: "Simulation Failed",
-        description: "An error occurred while running the simulation.",
+        title: t("simulationFailed"),
+        description: t("simulationError"),
         variant: "destructive",
       });
     } finally {
@@ -44,8 +46,8 @@ export function CustomerView() {
   const handleClearResults = () => {
     setResults([]);
     toast({
-      title: "Results Cleared",
-      description: "All simulation results have been cleared.",
+      title: t("resultsCleared"),
+      description: t("allResultsCleared"),
     });
   };
 
@@ -55,6 +57,7 @@ export function CustomerView() {
         onSubmit={handleSimulation}
         isLoading={isLoading}
         hideClientsField={true}
+        hideTradesField={true}
       />
       <CustomerResults
         results={results}

@@ -4,14 +4,17 @@ import { SimulationForm } from "@/components/SimulationForm";
 import { SimulationResults } from "@/components/SimulationResults";
 import { BatchSimulation } from "@/components/BatchSimulation";
 import { CustomerView } from "@/components/CustomerView";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import { useToast } from "@/hooks/use-toast";
 import { SimulationResult, runSimulation } from "@/utils/simulation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Index = () => {
   const [results, setResults] = useState<SimulationResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleSimulation = async (values: {
     clientsNumber: number;
@@ -28,13 +31,13 @@ const Index = () => {
       const result = runSimulation(values);
       setResults((prev) => [result, ...prev]);
       toast({
-        title: "Simulation Complete",
-        description: `Net Profit: €${result.netProfit.toFixed(2)}`,
+        title: t("simulationComplete"),
+        description: `${t("netProfit")}: €${result.netProfit.toFixed(2)}`,
       });
     } catch (error) {
       toast({
-        title: "Simulation Failed",
-        description: "An error occurred while running the simulation.",
+        title: t("simulationFailed"),
+        description: t("simulationError"),
         variant: "destructive",
       });
     } finally {
@@ -45,25 +48,26 @@ const Index = () => {
   const handleClearResults = () => {
     setResults([]);
     toast({
-      title: "Results Cleared",
-      description: "All simulation results have been cleared.",
+      title: t("resultsCleared"),
+      description: t("allResultsCleared"),
     });
   };
 
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="container mx-auto space-y-8">
-        <div className="text-center mb-8">
+        <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold tracking-tight">
             Hydraedge Model Simulation
           </h1>
+          <LanguageSelector />
         </div>
         
         <Tabs defaultValue="customer" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="customer">Customer View</TabsTrigger>
-            <TabsTrigger value="single">Single Simulation</TabsTrigger>
-            <TabsTrigger value="batch">Batch Simulations</TabsTrigger>
+            <TabsTrigger value="customer">{t("customerView")}</TabsTrigger>
+            <TabsTrigger value="single">{t("singleSimulation")}</TabsTrigger>
+            <TabsTrigger value="batch">{t("batchSimulations")}</TabsTrigger>
           </TabsList>
           
           <TabsContent value="customer" className="space-y-8">
