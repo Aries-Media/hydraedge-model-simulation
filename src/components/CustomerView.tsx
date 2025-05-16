@@ -2,12 +2,14 @@
 import { useState } from "react";
 import { SimulationForm } from "@/components/SimulationForm";
 import { CustomerResults } from "@/components/CustomerResults";
+import { MultiLicenseResults } from "@/components/MultiLicenseResults";
 import { useToast } from "@/hooks/use-toast";
 import { SimulationResult, runSimulation } from "@/utils/simulation";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export function CustomerView() {
   const [results, setResults] = useState<SimulationResult[]>([]);
+  const [latestResult, setLatestResult] = useState<SimulationResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -27,6 +29,7 @@ export function CustomerView() {
       // Override clientsNumber to always be 1 for customer view
       const customerValues = { ...values, clientsNumber: 1 };
       const result = runSimulation(customerValues);
+      setLatestResult(result);
       setResults((prev) => [result, ...prev]);
       toast({
         title: t("simulationComplete"),
@@ -45,6 +48,7 @@ export function CustomerView() {
 
   const handleClearResults = () => {
     setResults([]);
+    setLatestResult(null);
     toast({
       title: t("resultsCleared"),
       description: t("allResultsCleared"),
@@ -59,6 +63,7 @@ export function CustomerView() {
         hideClientsField={true}
         hideTradesField={true}
       />
+      <MultiLicenseResults result={latestResult} />
       <CustomerResults
         results={results}
         onClearResults={handleClearResults}
