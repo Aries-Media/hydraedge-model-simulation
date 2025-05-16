@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -16,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { SimulationResult } from "@/utils/simulation";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SimulationResultsProps {
   results: SimulationResult[];
@@ -26,6 +28,8 @@ export function SimulationResults({
   results,
   onClearResults,
 }: SimulationResultsProps) {
+  const { t } = useLanguage();
+  
   if (results.length === 0) return null;
 
   // Calculate averages for numeric columns
@@ -44,9 +48,9 @@ export function SimulationResults({
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Simulation Results</CardTitle>
+          <CardTitle>{t("simulationResults")}</CardTitle>
           <CardDescription>
-            Historical results from all simulation runs
+            {t("simulationResultsDescription")}
           </CardDescription>
         </div>
         <Button
@@ -56,7 +60,7 @@ export function SimulationResults({
           className="ml-4"
         >
           <Trash2 className="h-4 w-4 mr-2" />
-          Clear Results
+          {t("clearResults")}
         </Button>
       </CardHeader>
       <CardContent>
@@ -64,15 +68,15 @@ export function SimulationResults({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Timestamp</TableHead>
-                <TableHead className="text-right">Net Profit (€)</TableHead>
-                <TableHead className="text-right">Challenges</TableHead>
-                <TableHead className="text-right">Challenge Cost (€)</TableHead>
-                <TableHead className="text-right">Prop Withdraw (€)</TableHead>
-                <TableHead className="text-right">Broker Withdraw (€)</TableHead>
-                <TableHead className="text-right">Trades in Real</TableHead>
-                <TableHead className="text-right">Payouts</TableHead>
-                <TableHead className="text-right">Payout %</TableHead>
+                <TableHead>{t("timestamp")}</TableHead>
+                <TableHead className="text-right">{t("netProfitEuro")}</TableHead>
+                <TableHead className="text-right">{t("challengesBought")}</TableHead>
+                <TableHead className="text-right">{t("challengeCostEuro")}</TableHead>
+                <TableHead className="text-right">{t("propWithdrawEuro")}</TableHead>
+                <TableHead className="text-right">{t("brokerWithdrawEuro")}</TableHead>
+                <TableHead className="text-right">{t("tradesInRealColumn")}</TableHead>
+                <TableHead className="text-right">{t("payoutsColumn")}</TableHead>
+                <TableHead className="text-right">{t("payoutPercentageColumn")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -106,7 +110,7 @@ export function SimulationResults({
                 </TableRow>
               ))}
               <TableRow className="font-medium bg-muted/50">
-                <TableCell>Average</TableCell>
+                <TableCell>{t("average")}</TableCell>
                 <TableCell className="text-right">
                   {averages.netProfit.toFixed(2)}
                 </TableCell>
