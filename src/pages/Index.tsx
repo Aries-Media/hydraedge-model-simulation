@@ -1,7 +1,9 @@
+
 import { useState } from "react";
 import { SimulationForm } from "@/components/SimulationForm";
 import { SimulationResults } from "@/components/SimulationResults";
 import { BatchSimulation } from "@/components/BatchSimulation";
+import { CustomerView } from "@/components/CustomerView";
 import { useToast } from "@/hooks/use-toast";
 import { SimulationResult, runSimulation } from "@/utils/simulation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -57,11 +59,16 @@ const Index = () => {
           </h1>
         </div>
         
-        <Tabs defaultValue="single" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs defaultValue="customer" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="customer">Customer View</TabsTrigger>
             <TabsTrigger value="single">Single Simulation</TabsTrigger>
             <TabsTrigger value="batch">Batch Simulations</TabsTrigger>
           </TabsList>
+          
+          <TabsContent value="customer" className="space-y-8">
+            <CustomerView />
+          </TabsContent>
           
           <TabsContent value="single" className="space-y-8">
             <div className="flex flex-col items-center gap-8">

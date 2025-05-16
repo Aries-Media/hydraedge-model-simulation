@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -63,13 +64,19 @@ interface SimulationFormProps {
   }) => void;
   isLoading?: boolean;
   showSubmitButton?: boolean;
+  hideClientsField?: boolean;
 }
 
-export function SimulationForm({ onSubmit, isLoading, showSubmitButton = true }: SimulationFormProps) {
+export function SimulationForm({ 
+  onSubmit, 
+  isLoading, 
+  showSubmitButton = true,
+  hideClientsField = false
+}: SimulationFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      clientsNumber: "500",
+      clientsNumber: "1", // Default to 1 when hideClientsField is true
       tradesPerClient: "250",
       challengeCost: "900",
       tpGainChallenge: "1725",
@@ -82,7 +89,7 @@ export function SimulationForm({ onSubmit, isLoading, showSubmitButton = true }:
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     onSubmit({
-      clientsNumber: parseInt(values.clientsNumber),
+      clientsNumber: hideClientsField ? 1 : parseInt(values.clientsNumber),
       tradesPerClient: parseInt(values.tradesPerClient),
       challengeCost: parseInt(values.challengeCost),
       tpGainChallenge: parseInt(values.tpGainChallenge),
@@ -104,22 +111,24 @@ export function SimulationForm({ onSubmit, isLoading, showSubmitButton = true }:
             <div className="space-y-6">
               {/* First row */}
               <div className="flex flex-wrap gap-4">
-                <FormField
-                  control={form.control}
-                  name="clientsNumber"
-                  render={({ field }) => (
-                    <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>Number of Clients</FormLabel>
-                      <FormControl>
-                        <Input type="text" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Enter the number of clients to simulate
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!hideClientsField && (
+                  <FormField
+                    control={form.control}
+                    name="clientsNumber"
+                    render={({ field }) => (
+                      <FormItem className="flex-1 min-w-[200px]">
+                        <FormLabel>Number of Clients</FormLabel>
+                        <FormControl>
+                          <Input type="text" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Enter the number of clients to simulate
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
                 <FormField
                   control={form.control}
                   name="tradesPerClient"
