@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { SimulationForm } from "@/components/SimulationForm";
 import { CustomerResults } from "@/components/CustomerResults";
@@ -31,10 +30,6 @@ export function CustomerView() {
       const result = runSimulation(customerValues);
       setLatestResult(result);
       setResults((prev) => [result, ...prev]);
-      toast({
-        title: t("simulationComplete"),
-        description: `${t("netProfit")}: €${result.netProfit.toFixed(2)}`,
-      });
     } catch (error) {
       toast({
         title: t("simulationFailed"),
@@ -49,10 +44,6 @@ export function CustomerView() {
   const handleClearResults = () => {
     setResults([]);
     setLatestResult(null);
-    toast({
-      title: t("resultsCleared"),
-      description: t("allResultsCleared"),
-    });
   };
 
   return (

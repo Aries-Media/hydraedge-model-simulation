@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { SimulationForm } from "@/components/SimulationForm";
 import { SimulationResults } from "@/components/SimulationResults";
@@ -30,10 +29,6 @@ const Index = () => {
     try {
       const result = runSimulation(values);
       setResults((prev) => [result, ...prev]);
-      toast({
-        title: t("simulationComplete"),
-        description: `${t("netProfit")}: €${result.netProfit.toFixed(2)}`,
-      });
     } catch (error) {
       toast({
         title: t("simulationFailed"),
@@ -47,10 +42,6 @@ const Index = () => {
 
   const handleClearResults = () => {
     setResults([]);
-    toast({
-      title: t("resultsCleared"),
-      description: t("allResultsCleared"),
-    });
   };
 
   return (

@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode } from "react";
 
 type Language = "en" | "it";
@@ -39,7 +38,6 @@ const translations: Translations = {
     metrics: "Metrics",
     licenses: "licenses",
     challenges: "Challenges",
-    challengeCost: "Challenge Cost",
     challengeRefunds: "Challenge Refunds",
     tradesInReal: "Trades In Real",
     payouts: "Payouts",
@@ -73,7 +71,6 @@ const translations: Translations = {
     metrics: "Metriche",
     licenses: "licenze",
     challenges: "Challenge",
-    challengeCost: "Costo Challenge",
     challengeRefunds: "Rimborsi Challenge",
     tradesInReal: "Operazioni Reali",
     payouts: "Pagamenti",
