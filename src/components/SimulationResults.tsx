@@ -32,16 +32,19 @@ export function SimulationResults({
   
   if (results.length === 0) return null;
 
-  // Calculate averages for numeric columns
+  // Calculate averages for all numeric columns
   const averages = {
     netProfit: results.reduce((acc, curr) => acc + curr.netProfit, 0) / results.length,
     challengesBought: results.reduce((acc, curr) => acc + curr.challengesBought, 0) / results.length,
-    costOfChallenges: results.reduce((acc, curr) => acc + curr.costOfChallenges, 0) / results.length,
-    propWithdraw: results.reduce((acc, curr) => acc + curr.propWithdraw, 0) / results.length,
-    brokerWithdraw: results.reduce((acc, curr) => acc + curr.brokerWithdraw, 0) / results.length,
-    tradesInReal: results.reduce((acc, curr) => acc + curr.tradesInReal, 0) / results.length,
-    payouts: results.reduce((acc, curr) => acc + curr.payouts, 0) / results.length,
-    payoutPercentage: results.reduce((acc, curr) => acc + curr.payoutPercentage, 0) / results.length,
+    challengesWon: results.reduce((acc, curr) => acc + curr.challengesWon, 0) / results.length,
+    challengesLost: results.reduce((acc, curr) => acc + curr.challengesLost, 0) / results.length,
+    payoutsCost: results.reduce((acc, curr) => acc + curr.payoutsCost, 0) / results.length,
+    refundsCost: results.reduce((acc, curr) => acc + curr.refundsCost, 0) / results.length,
+    reimburseBrokerLossCost: results.reduce((acc, curr) => acc + curr.reimburseBrokerLossCost, 0) / results.length,
+    extractedBrokerProfit: results.reduce((acc, curr) => acc + curr.extractedBrokerProfit, 0) / results.length,
+    totalLots: results.reduce((acc, curr) => acc + curr.totalLots, 0) / results.length,
+    propProfit: results.reduce((acc, curr) => acc + curr.propProfit, 0) / results.length,
+    totalAmountSpent: results.reduce((acc, curr) => acc + curr.totalAmountSpent, 0) / results.length,
   };
 
   return (
@@ -64,76 +67,99 @@ export function SimulationResults({
         </Button>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border">
+        <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{t("timestamp")}</TableHead>
-                <TableHead className="text-right">{t("netProfitEuro")}</TableHead>
-                <TableHead className="text-right">{t("challengesBought")}</TableHead>
-                <TableHead className="text-right">{t("challengeCostEuro")}</TableHead>
-                <TableHead className="text-right">{t("propWithdrawEuro")}</TableHead>
-                <TableHead className="text-right">{t("brokerWithdrawEuro")}</TableHead>
-                <TableHead className="text-right">{t("tradesInRealColumn")}</TableHead>
-                <TableHead className="text-right">{t("payoutsColumn")}</TableHead>
-                <TableHead className="text-right">{t("payoutPercentageColumn")}</TableHead>
+                <TableHead className="min-w-[140px]">Timestamp</TableHead>
+                <TableHead className="text-right min-w-[100px]">Net Profit</TableHead>
+                <TableHead className="text-right min-w-[120px]">Challenges Bought</TableHead>
+                <TableHead className="text-right min-w-[120px]">Challenges Won</TableHead>
+                <TableHead className="text-right min-w-[120px]">Challenges Lost</TableHead>
+                <TableHead className="text-right min-w-[100px]">Payouts Cost</TableHead>
+                <TableHead className="text-right min-w-[100px]">Refunds Cost</TableHead>
+                <TableHead className="text-right min-w-[140px]">Reimburse Broker Loss Cost</TableHead>
+                <TableHead className="text-right min-w-[140px]">Extracted Broker Profit</TableHead>
+                <TableHead className="text-right min-w-[100px]">Total Lots</TableHead>
+                <TableHead className="text-right min-w-[100px]">Prop Profit</TableHead>
+                <TableHead className="text-right min-w-[120px]">Total Amount Spent</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {results.map((result) => (
                 <TableRow key={result.id}>
-                  <TableCell>
+                  <TableCell className="min-w-[140px]">
                     {new Date(result.timestamp).toLocaleString()}
                   </TableCell>
                   <TableCell className="text-right">
-                    {result.netProfit.toFixed(2)}
+                    {result.netProfit.toFixed(0)}
                   </TableCell>
                   <TableCell className="text-right">
                     {result.challengesBought}
                   </TableCell>
                   <TableCell className="text-right">
-                    {result.costOfChallenges.toFixed(2)}
+                    {result.challengesWon}
                   </TableCell>
                   <TableCell className="text-right">
-                    {result.propWithdraw.toFixed(2)}
+                    {result.challengesLost}
                   </TableCell>
                   <TableCell className="text-right">
-                    {result.brokerWithdraw.toFixed(2)}
+                    {result.payoutsCost.toFixed(0)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {result.tradesInReal}
+                    {result.refundsCost.toFixed(0)}
                   </TableCell>
-                  <TableCell className="text-right">{result.payouts}</TableCell>
                   <TableCell className="text-right">
-                    {result.payoutPercentage.toFixed(2)}%
+                    {result.reimburseBrokerLossCost.toFixed(0)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {result.extractedBrokerProfit.toFixed(0)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {result.totalLots.toFixed(0)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {result.propProfit.toFixed(0)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {result.totalAmountSpent.toFixed(0)}
                   </TableCell>
                 </TableRow>
               ))}
               <TableRow className="font-medium bg-muted/50">
-                <TableCell>{t("average")}</TableCell>
+                <TableCell>Average</TableCell>
                 <TableCell className="text-right">
-                  {averages.netProfit.toFixed(2)}
+                  {averages.netProfit.toFixed(0)}
                 </TableCell>
                 <TableCell className="text-right">
                   {averages.challengesBought.toFixed(2)}
                 </TableCell>
                 <TableCell className="text-right">
-                  {averages.costOfChallenges.toFixed(2)}
+                  {averages.challengesWon.toFixed(2)}
                 </TableCell>
                 <TableCell className="text-right">
-                  {averages.propWithdraw.toFixed(2)}
+                  {averages.challengesLost.toFixed(2)}
                 </TableCell>
                 <TableCell className="text-right">
-                  {averages.brokerWithdraw.toFixed(2)}
+                  {averages.payoutsCost.toFixed(0)}
                 </TableCell>
                 <TableCell className="text-right">
-                  {averages.tradesInReal.toFixed(2)}
+                  {averages.refundsCost.toFixed(0)}
                 </TableCell>
                 <TableCell className="text-right">
-                  {averages.payouts.toFixed(2)}
+                  {averages.reimburseBrokerLossCost.toFixed(0)}
                 </TableCell>
                 <TableCell className="text-right">
-                  {averages.payoutPercentage.toFixed(2)}%
+                  {averages.extractedBrokerProfit.toFixed(0)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {averages.totalLots.toFixed(0)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {averages.propProfit.toFixed(0)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {averages.totalAmountSpent.toFixed(0)}
                 </TableCell>
               </TableRow>
             </TableBody>
