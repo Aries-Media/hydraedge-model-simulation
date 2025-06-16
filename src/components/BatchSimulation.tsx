@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,13 +23,10 @@ export function BatchSimulation() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [params, setParams] = useState({
     clientsNumber: 500,
-    tradesPerClient: 250,
-    challengeCost: 900,
-    tpGainChallenge: 1725,
-    slLossChallenge: 1500,
-    tpGainReal: 2850,
-    slLossReal: 750,
-    propPayout: 1600,
+    tradesPerClient: 180,
+    initialBalance: 200000,
+    commissionPerTrade: 10,
+    burnWonChallenges: true,
   });
   const { toast } = useToast();
 
@@ -67,23 +65,32 @@ export function BatchSimulation() {
         challengesBought:
           batchResults.reduce((acc, curr) => acc + curr.challengesBought, 0) /
           batchResults.length,
-        costOfChallenges:
-          batchResults.reduce((acc, curr) => acc + curr.costOfChallenges, 0) /
+        challengesWon:
+          batchResults.reduce((acc, curr) => acc + curr.challengesWon, 0) /
           batchResults.length,
-        propWithdraw:
-          batchResults.reduce((acc, curr) => acc + curr.propWithdraw, 0) /
+        challengesLost:
+          batchResults.reduce((acc, curr) => acc + curr.challengesLost, 0) /
           batchResults.length,
-        brokerWithdraw:
-          batchResults.reduce((acc, curr) => acc + curr.brokerWithdraw, 0) /
+        payoutsCost:
+          batchResults.reduce((acc, curr) => acc + curr.payoutsCost, 0) /
           batchResults.length,
-        tradesInReal:
-          batchResults.reduce((acc, curr) => acc + curr.tradesInReal, 0) /
+        refundsCost:
+          batchResults.reduce((acc, curr) => acc + curr.refundsCost, 0) /
           batchResults.length,
-        payouts:
-          batchResults.reduce((acc, curr) => acc + curr.payouts, 0) /
+        reimburseBrokerLossCost:
+          batchResults.reduce((acc, curr) => acc + curr.reimburseBrokerLossCost, 0) /
           batchResults.length,
-        payoutPercentage:
-          batchResults.reduce((acc, curr) => acc + curr.payoutPercentage, 0) /
+        extractedBrokerProfit:
+          batchResults.reduce((acc, curr) => acc + curr.extractedBrokerProfit, 0) /
+          batchResults.length,
+        totalLots:
+          batchResults.reduce((acc, curr) => acc + curr.totalLots, 0) /
+          batchResults.length,
+        propProfit:
+          batchResults.reduce((acc, curr) => acc + curr.propProfit, 0) /
+          batchResults.length,
+        totalAmountSpent:
+          batchResults.reduce((acc, curr) => acc + curr.totalAmountSpent, 0) /
           batchResults.length,
       }
     : null;
@@ -139,12 +146,28 @@ export function BatchSimulation() {
               <div className="text-2xl font-bold">{averages.challengesBought.toFixed(2)}</div>
             </div>
             <div>
-              <Label>Prop Withdraw</Label>
-              <div className="text-2xl font-bold">€{averages.propWithdraw.toFixed(2)}</div>
+              <Label>Challenges Won</Label>
+              <div className="text-2xl font-bold">{averages.challengesWon.toFixed(2)}</div>
             </div>
             <div>
-              <Label>Payout Percentage</Label>
-              <div className="text-2xl font-bold">{averages.payoutPercentage.toFixed(2)}%</div>
+              <Label>Challenges Lost</Label>
+              <div className="text-2xl font-bold">{averages.challengesLost.toFixed(2)}</div>
+            </div>
+            <div>
+              <Label>Payouts Cost</Label>
+              <div className="text-2xl font-bold">€{averages.payoutsCost.toFixed(2)}</div>
+            </div>
+            <div>
+              <Label>Refunds Cost</Label>
+              <div className="text-2xl font-bold">€{averages.refundsCost.toFixed(2)}</div>
+            </div>
+            <div>
+              <Label>Broker Loss Reimburse</Label>
+              <div className="text-2xl font-bold">€{averages.reimburseBrokerLossCost.toFixed(2)}</div>
+            </div>
+            <div>
+              <Label>Extracted Broker Profit</Label>
+              <div className="text-2xl font-bold">€{averages.extractedBrokerProfit.toFixed(2)}</div>
             </div>
           </div>
 
