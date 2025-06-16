@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import * as z from "zod";
@@ -14,10 +13,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Loader2, Plus, Trash2, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LevelRule } from "@/utils/simulation";
 import Decimal from 'decimal.js';
+import { useState } from "react";
 
 const levelRuleSchema = z.object({
   maxBalance: z.string().refine((val) => {
@@ -73,6 +74,7 @@ export function SimulationForm({
   hideTradesField = false
 }: SimulationFormProps) {
   const { t } = useLanguage();
+  const [isLevelsOpen, setIsLevelsOpen] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -180,93 +182,108 @@ export function SimulationForm({
                 />
               </div>
 
-              {/* Levels Configuration Section */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium">Trading Levels Configuration</h3>
-                  <Button type="button" onClick={addLevel} variant="outline" size="sm">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Level
-                  </Button>
+              {/* Collapsible Levels Configuration Section */}
+              <Collapsible open={isLevelsOpen} onOpenChange={setIsLevelsOpen}>
+                <div className="space-y-4">
+                  <CollapsibleTrigger asChild>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="flex w-full items-center justify-between p-4 hover:bg-muted/50"
+                    >
+                      <h3 className="text-lg font-medium">Trading Levels Configuration</h3>
+                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isLevelsOpen ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">Define custom trading levels with specific balance ranges and rules.</p>
+                      <Button type="button" onClick={addLevel} variant="outline" size="sm">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Level
+                      </Button>
+                    </div>
+                    
+                    {fields.length > 0 && (
+                      <div className="space-y-4">
+                        {fields.map((field, index) => (
+                          <Card key={field.id} className="p-4">
+                            <div className="flex items-center justify-between mb-4">
+                              <h4 className="font-medium">Level {index + 1}</h4>
+                              <Button
+                                type="button"
+                                onClick={() => remove(index)}
+                                variant="outline"
+                                size="sm"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <FormField
+                                control={form.control}
+                                name={`levels.${index}.maxBalance`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Max Balance</FormLabel>
+                                    <FormControl>
+                                      <Input type="number" step="0.01" {...field} />
+                                    </FormControl>
+                                    <FormDescription>
+                                      Upper limit for this level
+                                    </FormDescription>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`levels.${index}.sl`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Stop Loss</FormLabel>
+                                    <FormControl>
+                                      <Input type="number" step="0.01" {...field} />
+                                    </FormControl>
+                                    <FormDescription>
+                                      Stop loss distance
+                                    </FormDescription>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`levels.${index}.tp`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Take Profit</FormLabel>
+                                    <FormControl>
+                                      <Input type="number" step="0.01" {...field} />
+                                    </FormControl>
+                                    <FormDescription>
+                                      Take profit distance
+                                    </FormDescription>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {fields.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No custom levels defined. Default levels will be used.</p>
+                        <p className="text-sm mt-2">Click "Add Level" to define custom trading levels.</p>
+                      </div>
+                    )}
+                  </CollapsibleContent>
                 </div>
-                
-                {fields.length > 0 && (
-                  <div className="space-y-4">
-                    {fields.map((field, index) => (
-                      <Card key={field.id} className="p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <h4 className="font-medium">Level {index + 1}</h4>
-                          <Button
-                            type="button"
-                            onClick={() => remove(index)}
-                            variant="outline"
-                            size="sm"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <FormField
-                            control={form.control}
-                            name={`levels.${index}.maxBalance`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Max Balance</FormLabel>
-                                <FormControl>
-                                  <Input type="number" step="0.01" {...field} />
-                                </FormControl>
-                                <FormDescription>
-                                  Upper limit for this level
-                                </FormDescription>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name={`levels.${index}.sl`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Stop Loss</FormLabel>
-                                <FormControl>
-                                  <Input type="number" step="0.01" {...field} />
-                                </FormControl>
-                                <FormDescription>
-                                  Stop loss distance
-                                </FormDescription>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name={`levels.${index}.tp`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Take Profit</FormLabel>
-                                <FormControl>
-                                  <Input type="number" step="0.01" {...field} />
-                                </FormControl>
-                                <FormDescription>
-                                  Take profit distance
-                                </FormDescription>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-                
-                {fields.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>No custom levels defined. Default levels will be used.</p>
-                    <p className="text-sm mt-2">Click "Add Level" to define custom trading levels.</p>
-                  </div>
-                )}
-              </div>
+              </Collapsible>
             </div>
             {showSubmitButton && (
               <Button type="submit" className="w-full" disabled={isLoading}>
