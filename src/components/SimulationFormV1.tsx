@@ -41,11 +41,11 @@ export function SimulationFormV1({ onSubmit, isLoading }: SimulationFormV1Props)
       clientsNumber: 1000,
       tradesPerClient: 100,
       challengeCost: 900,
-      tpGainChallenge: 6000,
-      slLossChallenge: 8200,
-      tpGainReal: 2000,
-      slLossReal: 4000,
-      propPayout: 4000,
+      tpGainChallenge: 1725,
+      slLossChallenge: 1500,
+      tpGainReal: 2850,
+      slLossReal: 750,
+      propPayout: 1600,
     },
   });
 
