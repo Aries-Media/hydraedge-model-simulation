@@ -56,6 +56,7 @@ export interface SimulationResult {
 
   /* convenience aggregates */
   totalAmountSpent: number;         // payoutsCost + refundsCost + reimburseBrokerLossCost + commissionCost
+  totalLots: number;                // total lots traded during simulation
 
   // Legacy fields for compatibility
   costOfChallenges: number;
@@ -339,6 +340,7 @@ export function runSimulation({
     propProfit: propProfit.toNumber(),
 
     totalAmountSpent: totalAmountSpent.toNumber(),
+    totalLots: totalLots.toNumber(),
 
     // Legacy compatibility fields
     costOfChallenges: CHALLENGE_COST.times(challengesBought).toNumber(),
