@@ -23,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Toggle } from "@/components/ui/toggle";
 import { Loader2, Plus, Trash2, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LevelRule } from "@/utils/simulation";
@@ -53,10 +54,7 @@ const formSchema = z.object({
     const num = parseInt(val);
     return !isNaN(num) && num >= 1 && num <= 1000;
   }, "Must be a number between 1 and 1000"),
-  initialBalance: z.string().refine((val) => {
-    const num = parseInt(val);
-    return !isNaN(num) && num >= 10000 && num <= 1000000;
-  }, "Must be a number between 10000 and 1000000"),
+  burnWonChallenges: z.boolean(),
   levels: z.array(levelRuleSchema).optional(),
 });
 
@@ -90,7 +88,7 @@ export function SimulationForm({
     defaultValues: {
       clientsNumber: "500",
       tradesPerClient: "180",
-      initialBalance: "200000",
+      burnWonChallenges: true,
       levels: [
         { maxBalance: "200000", sl: "8200", tp: "6000" },
         { maxBalance: "206000", sl: "7000", tp: "6000" },
@@ -116,9 +114,9 @@ export function SimulationForm({
     onSubmit({
       clientsNumber: hideClientsField ? 1 : parseInt(values.clientsNumber),
       tradesPerClient: parseInt(values.tradesPerClient),
-      initialBalance: parseInt(values.initialBalance),
+      initialBalance: 200000, // Fixed default value
       commissionPerTrade: 10, // Fixed default
-      burnWonChallenges: true, // Fixed default
+      burnWonChallenges: values.burnWonChallenges,
       levels,
     });
   };
@@ -175,15 +173,23 @@ export function SimulationForm({
                 )}
                 <FormField
                   control={form.control}
-                  name="initialBalance"
+                  name="burnWonChallenges"
                   render={({ field }) => (
                     <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>{t("initialBalance")}</FormLabel>
+                      <FormLabel>Burn Won Challenges</FormLabel>
                       <FormControl>
-                        <Input type="text" {...field} />
+                        <div className="flex items-center space-x-2">
+                          <Toggle
+                            pressed={field.value}
+                            onPressedChange={field.onChange}
+                            variant="outline"
+                          >
+                            {field.value ? "Enabled" : "Disabled"}
+                          </Toggle>
+                        </div>
                       </FormControl>
                       <FormDescription>
-                        Starting challenge balance (50k, 100k, 200k, etc.)
+                        Whether to burn won challenges or continue to real trading phase
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
