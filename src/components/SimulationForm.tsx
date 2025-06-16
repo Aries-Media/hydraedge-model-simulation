@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import * as z from "zod";
@@ -14,6 +15,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Loader2, Plus, Trash2, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LevelRule } from "@/utils/simulation";
@@ -206,72 +215,75 @@ export function SimulationForm({
                     </div>
                     
                     {fields.length > 0 && (
-                      <div className="space-y-4">
-                        {fields.map((field, index) => (
-                          <Card key={field.id} className="p-4">
-                            <div className="flex items-center justify-between mb-4">
-                              <h4 className="font-medium">Level {index + 1}</h4>
-                              <Button
-                                type="button"
-                                onClick={() => remove(index)}
-                                variant="outline"
-                                size="sm"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <FormField
-                                control={form.control}
-                                name={`levels.${index}.maxBalance`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Max Balance</FormLabel>
-                                    <FormControl>
-                                      <Input type="number" step="0.01" {...field} />
-                                    </FormControl>
-                                    <FormDescription>
-                                      Upper limit for this level
-                                    </FormDescription>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name={`levels.${index}.sl`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Stop Loss</FormLabel>
-                                    <FormControl>
-                                      <Input type="number" step="0.01" {...field} />
-                                    </FormControl>
-                                    <FormDescription>
-                                      Stop loss distance
-                                    </FormDescription>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name={`levels.${index}.tp`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Take Profit</FormLabel>
-                                    <FormControl>
-                                      <Input type="number" step="0.01" {...field} />
-                                    </FormControl>
-                                    <FormDescription>
-                                      Take profit distance
-                                    </FormDescription>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                          </Card>
-                        ))}
+                      <div className="border rounded-lg">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Max Balance</TableHead>
+                              <TableHead>Stop Loss</TableHead>
+                              <TableHead>Take Profit</TableHead>
+                              <TableHead className="w-[80px]">Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {fields.map((field, index) => (
+                              <TableRow key={field.id}>
+                                <TableCell>
+                                  <FormField
+                                    control={form.control}
+                                    name={`levels.${index}.maxBalance`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormControl>
+                                          <Input type="number" step="0.01" {...field} className="w-full" />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <FormField
+                                    control={form.control}
+                                    name={`levels.${index}.sl`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormControl>
+                                          <Input type="number" step="0.01" {...field} className="w-full" />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <FormField
+                                    control={form.control}
+                                    name={`levels.${index}.tp`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormControl>
+                                          <Input type="number" step="0.01" {...field} className="w-full" />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Button
+                                    type="button"
+                                    onClick={() => remove(index)}
+                                    variant="outline"
+                                    size="sm"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
                       </div>
                     )}
                     
