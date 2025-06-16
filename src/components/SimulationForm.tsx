@@ -23,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Toggle } from "@/components/ui/toggle";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Plus, Trash2, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LevelRule } from "@/utils/simulation";
@@ -179,13 +179,13 @@ export function SimulationForm({
                       <FormLabel>Burn Won Challenges</FormLabel>
                       <FormControl>
                         <div className="flex items-center space-x-2">
-                          <Toggle
-                            pressed={field.value}
-                            onPressedChange={field.onChange}
-                            variant="outline"
-                          >
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                          <span className="text-sm">
                             {field.value ? "Enabled" : "Disabled"}
-                          </Toggle>
+                          </span>
                         </div>
                       </FormControl>
                       <FormDescription>
