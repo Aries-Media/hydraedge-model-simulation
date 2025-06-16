@@ -26,42 +26,19 @@ const formSchema = z.object({
     const num = parseInt(val);
     return !isNaN(num) && num >= 1 && num <= 1000;
   }, "Must be a number between 1 and 1000"),
-  challengeCost: z.string().refine((val) => {
+  initialBalance: z.string().refine((val) => {
     const num = parseInt(val);
-    return !isNaN(num) && num >= 1 && num <= 10000;
-  }, "Must be a number between 1 and 10000"),
-  tpGainChallenge: z.string().refine((val) => {
-    const num = parseInt(val);
-    return !isNaN(num) && num >= 1;
-  }, "Must be a positive number"),
-  slLossChallenge: z.string().refine((val) => {
-    const num = parseInt(val);
-    return !isNaN(num) && num >= 1;
-  }, "Must be a positive number"),
-  tpGainReal: z.string().refine((val) => {
-    const num = parseInt(val);
-    return !isNaN(num) && num >= 1;
-  }, "Must be a positive number"),
-  slLossReal: z.string().refine((val) => {
-    const num = parseInt(val);
-    return !isNaN(num) && num >= 1;
-  }, "Must be a positive number"),
-  propPayout: z.string().refine((val) => {
-    const num = parseInt(val);
-    return !isNaN(num) && num >= 1;
-  }, "Must be a positive number"),
+    return !isNaN(num) && num >= 10000 && num <= 1000000;
+  }, "Must be a number between 10000 and 1000000"),
 });
 
 interface SimulationFormProps {
   onSubmit: (values: {
     clientsNumber: number;
     tradesPerClient: number;
-    challengeCost: number;
-    tpGainChallenge: number;
-    slLossChallenge: number;
-    tpGainReal: number;
-    slLossReal: number;
-    propPayout: number;
+    initialBalance: number;
+    commissionPerTrade: number;
+    burnWonChallenges: boolean;
   }) => void;
   isLoading?: boolean;
   showSubmitButton?: boolean;
@@ -81,14 +58,9 @@ export function SimulationForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      clientsNumber: "1", // Default to 1 when hideClientsField is true
-      tradesPerClient: "250",
-      challengeCost: "900",
-      tpGainChallenge: "1725",
-      slLossChallenge: "1500",
-      tpGainReal: "2850",
-      slLossReal: "750",
-      propPayout: "1600",
+      clientsNumber: "500",
+      tradesPerClient: "180",
+      initialBalance: "200000",
     },
   });
 
@@ -96,12 +68,9 @@ export function SimulationForm({
     onSubmit({
       clientsNumber: hideClientsField ? 1 : parseInt(values.clientsNumber),
       tradesPerClient: parseInt(values.tradesPerClient),
-      challengeCost: parseInt(values.challengeCost),
-      tpGainChallenge: parseInt(values.tpGainChallenge),
-      slLossChallenge: parseInt(values.slLossChallenge),
-      tpGainReal: parseInt(values.tpGainReal),
-      slLossReal: parseInt(values.slLossReal),
-      propPayout: parseInt(values.propPayout),
+      initialBalance: parseInt(values.initialBalance),
+      commissionPerTrade: 10, // Fixed default
+      burnWonChallenges: true, // Fixed default
     });
   };
 
@@ -114,7 +83,6 @@ export function SimulationForm({
         <Form {...form}>
           <form onChange={showSubmitButton ? undefined : () => form.handleSubmit(handleSubmit)()} onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <div className="space-y-6">
-              {/* First row */}
               <div className="flex flex-wrap gap-4">
                 {!hideClientsField && (
                   <FormField
@@ -154,99 +122,15 @@ export function SimulationForm({
                 )}
                 <FormField
                   control={form.control}
-                  name="challengeCost"
+                  name="initialBalance"
                   render={({ field }) => (
                     <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>{t("challengeCost")}</FormLabel>
+                      <FormLabel>{t("initialBalance")}</FormLabel>
                       <FormControl>
                         <Input type="text" {...field} />
                       </FormControl>
                       <FormDescription>
-                        {t("challengeCost")}
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Second row */}
-              <div className="flex flex-wrap gap-4">
-                <FormField
-                  control={form.control}
-                  name="tpGainChallenge"
-                  render={({ field }) => (
-                    <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>{t("tpGainChallenge")}</FormLabel>
-                      <FormControl>
-                        <Input type="text" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        {t("tpGainChallenge")}
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="slLossChallenge"
-                  render={({ field }) => (
-                    <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>{t("slLossChallenge")}</FormLabel>
-                      <FormControl>
-                        <Input type="text" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        {t("slLossChallenge")}
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="tpGainReal"
-                  render={({ field }) => (
-                    <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>{t("tpGainReal")}</FormLabel>
-                      <FormControl>
-                        <Input type="text" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        {t("tpGainReal")}
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="slLossReal"
-                  render={({ field }) => (
-                    <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>{t("slLossReal")}</FormLabel>
-                      <FormControl>
-                        <Input type="text" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        {t("slLossReal")}
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="propPayout"
-                  render={({ field }) => (
-                    <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>{t("propPayout")}</FormLabel>
-                      <FormControl>
-                        <Input type="text" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        {t("propPayout")}
+                        Starting challenge balance (50k, 100k, 200k, etc.)
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

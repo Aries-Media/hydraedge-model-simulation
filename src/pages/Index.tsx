@@ -18,12 +18,9 @@ const Index = () => {
   const handleSimulation = async (values: {
     clientsNumber: number;
     tradesPerClient: number;
-    challengeCost: number;
-    tpGainChallenge: number;
-    slLossChallenge: number;
-    tpGainReal: number;
-    slLossReal: number;
-    propPayout: number;
+    initialBalance: number;
+    commissionPerTrade: number;
+    burnWonChallenges: boolean;
   }) => {
     setIsLoading(true);
     try {
