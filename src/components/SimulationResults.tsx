@@ -32,20 +32,47 @@ export function SimulationResults({
   
   if (results.length === 0) return null;
 
-  // Calculate averages for all numeric columns
-  const averages = {
-    netProfit: results.reduce((acc, curr) => acc + curr.netProfit, 0) / results.length,
-    challengesBought: results.reduce((acc, curr) => acc + curr.challengesBought, 0) / results.length,
-    challengesWon: results.reduce((acc, curr) => acc + curr.challengesWon, 0) / results.length,
-    challengesLost: results.reduce((acc, curr) => acc + curr.challengesLost, 0) / results.length,
-    propProfit: results.reduce((acc, curr) => acc + curr.propProfit, 0) / results.length,
-    payoutsCost: results.reduce((acc, curr) => acc + curr.payoutsCost, 0) / results.length,
-    refundsCost: results.reduce((acc, curr) => acc + curr.refundsCost, 0) / results.length,
-    reimburseBrokerLossCost: results.reduce((acc, curr) => acc + curr.reimburseBrokerLossCost, 0) / results.length,
-    extractedBrokerProfit: results.reduce((acc, curr) => acc + curr.extractedBrokerProfit, 0) / results.length,
-    totalLots: results.reduce((acc, curr) => acc + curr.totalLots, 0) / results.length,
-    totalAmountSpent: results.reduce((acc, curr) => acc + curr.totalAmountSpent, 0) / results.length,
-  };
+  // Group results by simulation run (assuming results from same run have similar timestamps)
+  const groupedResults = results.reduce((acc, result) => {
+    const timestamp = new Date(result.timestamp).toISOString().slice(0, 16); // Group by minute
+    if (!acc[timestamp]) {
+      acc[timestamp] = [];
+    }
+    acc[timestamp].push(result);
+    return acc;
+  }, {} as Record<string, SimulationResult[]>);
+
+  // Create display data - either individual results or averages
+  const displayData = Object.entries(groupedResults).map(([timestamp, groupResults]) => {
+    if (groupResults.length === 1) {
+      // Single client - show individual result
+      return {
+        ...groupResults[0],
+        clientCount: 1,
+        isAverage: false
+      };
+    } else {
+      // Multiple clients - show average
+      const averages = {
+        id: `avg-${timestamp}`,
+        timestamp: groupResults[0].timestamp,
+        netProfit: groupResults.reduce((acc, curr) => acc + curr.netProfit, 0) / groupResults.length,
+        challengesBought: groupResults.reduce((acc, curr) => acc + curr.challengesBought, 0) / groupResults.length,
+        challengesWon: groupResults.reduce((acc, curr) => acc + curr.challengesWon, 0) / groupResults.length,
+        challengesLost: groupResults.reduce((acc, curr) => acc + curr.challengesLost, 0) / groupResults.length,
+        propProfit: groupResults.reduce((acc, curr) => acc + curr.propProfit, 0) / groupResults.length,
+        payoutsCost: groupResults.reduce((acc, curr) => acc + curr.payoutsCost, 0) / groupResults.length,
+        refundsCost: groupResults.reduce((acc, curr) => acc + curr.refundsCost, 0) / groupResults.length,
+        reimburseBrokerLossCost: groupResults.reduce((acc, curr) => acc + curr.reimburseBrokerLossCost, 0) / groupResults.length,
+        extractedBrokerProfit: groupResults.reduce((acc, curr) => acc + curr.extractedBrokerProfit, 0) / groupResults.length,
+        totalLots: groupResults.reduce((acc, curr) => acc + curr.totalLots, 0) / groupResults.length,
+        totalAmountSpent: groupResults.reduce((acc, curr) => acc + curr.totalAmountSpent, 0) / groupResults.length,
+        clientCount: groupResults.length,
+        isAverage: true
+      };
+      return averages;
+    }
+  });
 
   return (
     <Card className="w-full">
@@ -72,6 +99,7 @@ export function SimulationResults({
             <TableHeader>
               <TableRow>
                 <TableHead className="min-w-[140px]">Timestamp</TableHead>
+                <TableHead className="min-w-[100px]">Clients</TableHead>
                 <TableHead className="text-right min-w-[100px]">Net Profit</TableHead>
                 <TableHead className="text-right min-w-[120px]">Challenges Bought</TableHead>
                 <TableHead className="text-right min-w-[120px]">Challenges Won</TableHead>
@@ -86,22 +114,25 @@ export function SimulationResults({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {results.map((result) => (
-                <TableRow key={result.id}>
+              {displayData.map((result) => (
+                <TableRow key={result.id} className={result.isAverage ? "bg-muted/30" : ""}>
                   <TableCell className="min-w-[140px]">
                     {new Date(result.timestamp).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    {result.clientCount} {result.isAverage ? '(avg)' : ''}
                   </TableCell>
                   <TableCell className="text-right">
                     {result.netProfit.toFixed(0)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {result.challengesBought}
+                    {result.isAverage ? result.challengesBought.toFixed(2) : result.challengesBought}
                   </TableCell>
                   <TableCell className="text-right">
-                    {result.challengesWon}
+                    {result.isAverage ? result.challengesWon.toFixed(2) : result.challengesWon}
                   </TableCell>
                   <TableCell className="text-right">
-                    {result.challengesLost}
+                    {result.isAverage ? result.challengesLost.toFixed(2) : result.challengesLost}
                   </TableCell>
                   <TableCell className={`text-right ${result.propProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {result.propProfit.toFixed(0)}
@@ -126,42 +157,6 @@ export function SimulationResults({
                   </TableCell>
                 </TableRow>
               ))}
-              <TableRow className="font-medium bg-muted/50">
-                <TableCell>Average</TableCell>
-                <TableCell className="text-right">
-                  {averages.netProfit.toFixed(0)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {averages.challengesBought.toFixed(2)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {averages.challengesWon.toFixed(2)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {averages.challengesLost.toFixed(2)}
-                </TableCell>
-                <TableCell className={`text-right ${averages.propProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {averages.propProfit.toFixed(0)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {averages.payoutsCost.toFixed(0)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {averages.refundsCost.toFixed(0)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {averages.reimburseBrokerLossCost.toFixed(0)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {averages.extractedBrokerProfit.toFixed(0)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {averages.totalLots.toFixed(0)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {averages.totalAmountSpent.toFixed(0)}
-                </TableCell>
-              </TableRow>
             </TableBody>
           </Table>
         </div>
