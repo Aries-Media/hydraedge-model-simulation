@@ -122,7 +122,7 @@ export function SimulationResults({
                   <TableCell>
                     {result.clientCount} {result.isAverage ? '(avg)' : ''}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className={`text-right ${result.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {result.netProfit.toFixed(0)}
                   </TableCell>
                   <TableCell className="text-right">
