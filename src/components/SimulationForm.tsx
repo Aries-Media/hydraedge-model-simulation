@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import * as z from "zod";
@@ -23,7 +24,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
 import { Loader2, Plus, Trash2, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LevelRule } from "@/utils/simulation";
@@ -212,12 +212,12 @@ export function SimulationForm({
                       <FormLabel>Trade Outcome Random (Optional)</FormLabel>
                       <FormControl>
                         <div className="flex items-center space-x-2">
-                          <Switch
+                          <Checkbox
                             checked={field.value || false}
                             onCheckedChange={field.onChange}
                           />
-                          <span className="text-sm text-muted-foreground">
-                            {field.value ? "Random outcomes" : "Probability-based"}
+                          <span className="text-sm">
+                            {field.value ? "Enabled" : "Disabled"}
                           </span>
                         </div>
                       </FormControl>
