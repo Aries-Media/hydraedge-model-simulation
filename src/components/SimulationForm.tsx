@@ -30,7 +30,7 @@ const PRESET_LEVELS = {
     sl: "6000",
     tp: ""
   }],
-  original_unbalanced: [{
+  default: [{
     maxBalance: "200000",
     sl: "8200",
     tp: "5000"
@@ -43,7 +43,7 @@ const PRESET_LEVELS = {
     sl: "6000",
     tp: ""
   }],
-  default: [{
+  mid: [{
     maxBalance: "200000",
     sl: "8200",
     tp: "6000"
@@ -477,9 +477,9 @@ export function SimulationForm({
                             <SelectValue placeholder="Select preset levels" />
                           </SelectTrigger>
                           <SelectContent className="bg-popover z-50">
-                            <SelectItem value="default">Default Levels</SelectItem>
+                            <SelectItem value="default">Original Unbalanced</SelectItem>
                             <SelectItem value="original">Original</SelectItem>
-                            <SelectItem value="original_unbalanced">Original Unbalanced</SelectItem>
+                            <SelectItem value="mid">Mid</SelectItem>
                           </SelectContent>
                         </Select>
                         <Button type="button" onClick={addLevel} variant="outline" size="sm">
