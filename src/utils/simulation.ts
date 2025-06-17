@@ -131,7 +131,7 @@ function buildDefaultRealLevels(start: D): LevelRule[] {
 const makePicker = (levels: LevelRule[]) => {
   const last = levels[levels.length - 1];
   return (bal: D) => {
-    for (const lvl of levels) if (bal.lte(lvl.maxBalance)) {
+    for (const lvl of levels) if (bal.lt(lvl.maxBalance)) {
       const sl = lift(lvl.sl, bal);
       const tp = lvl.tp === undefined
         ? toDec(lvl.maxBalance).minus(bal)      // dynamic TP = gap to ceiling
