@@ -39,10 +39,11 @@ const levelRuleSchema = z.object({
     const num = parseFloat(val);
     return !isNaN(num) && num > 0;
   }, "Must be a positive number"),
-  tp: z.string().refine((val) => {
+  tp: z.string().optional().refine((val) => {
+    if (!val || val === "") return true;
     const num = parseFloat(val);
     return !isNaN(num) && num > 0;
-  }, "Must be a positive number"),
+  }, "Must be a positive number or empty"),
 });
 
 const formSchema = z.object({
@@ -55,6 +56,7 @@ const formSchema = z.object({
     return !isNaN(num) && num >= 1 && num <= 1000;
   }, "Must be a number between 1 and 1000"),
   burnWonChallenges: z.boolean(),
+  tradeOutputRandom: z.boolean(),
   levels: z.array(levelRuleSchema).optional(),
 });
 
@@ -65,6 +67,7 @@ interface SimulationFormProps {
     initialBalance: number;
     commissionPerTrade: number;
     burnWonChallenges: boolean;
+    tradeOutputRandom: boolean;
     levels?: LevelRule[];
   }) => void;
   isLoading?: boolean;
@@ -89,12 +92,13 @@ export function SimulationForm({
       clientsNumber: "500",
       tradesPerClient: "180",
       burnWonChallenges: true,
+      tradeOutputRandom: false,
       levels: [
         { maxBalance: "200000", sl: "8200", tp: "6000" },
         { maxBalance: "206000", sl: "7000", tp: "6000" },
         { maxBalance: "212000", sl: "8400", tp: "6000" },
         { maxBalance: "218000", sl: "7000", tp: "6000" },
-        { maxBalance: "224000", sl: "8800", tp: "16000" },
+        { maxBalance: "224000", sl: "8800", tp: "" },
       ],
     },
   });
@@ -108,7 +112,7 @@ export function SimulationForm({
     const levels: LevelRule[] | undefined = values.levels?.map(level => ({
       maxBalance: new Decimal(level.maxBalance),
       sl: new Decimal(level.sl),
-      tp: new Decimal(level.tp),
+      tp: level.tp && level.tp !== "" ? new Decimal(level.tp) : undefined,
     }));
 
     onSubmit({
@@ -117,6 +121,7 @@ export function SimulationForm({
       initialBalance: 200000, // Fixed default value
       commissionPerTrade: 10, // Fixed default
       burnWonChallenges: values.burnWonChallenges,
+      tradeOutputRandom: values.tradeOutputRandom,
       levels,
     });
   };
@@ -171,6 +176,9 @@ export function SimulationForm({
                     )}
                   />
                 )}
+              </div>
+              
+              <div className="flex flex-wrap gap-4">
                 <FormField
                   control={form.control}
                   name="burnWonChallenges"
@@ -190,6 +198,31 @@ export function SimulationForm({
                       </FormControl>
                       <FormDescription>
                         Whether to burn won challenges or continue to real trading phase
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="tradeOutputRandom"
+                  render={({ field }) => (
+                    <FormItem className="flex-1 min-w-[200px]">
+                      <FormLabel>Trade Outcome Random</FormLabel>
+                      <FormControl>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                          <span className="text-sm">
+                            {field.value ? "Enabled" : "Disabled"}
+                          </span>
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        Use random 50-50 trade outcomes instead of probability-based
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -269,7 +302,13 @@ export function SimulationForm({
                                     render={({ field }) => (
                                       <FormItem>
                                         <FormControl>
-                                          <Input type="number" step="0.01" {...field} className="w-full" />
+                                          <Input 
+                                            type="number" 
+                                            step="0.01" 
+                                            {...field} 
+                                            className="w-full" 
+                                            placeholder="Empty = auto (gap to max balance)"
+                                          />
                                         </FormControl>
                                         <FormMessage />
                                       </FormItem>

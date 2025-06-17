@@ -27,6 +27,8 @@ const Index = () => {
     initialBalance: number;
     commissionPerTrade: number;
     burnWonChallenges: boolean;
+    tradeOutputRandom: boolean;
+    levels?: any[];
   }) => {
     setIsLoading(true);
     try {
