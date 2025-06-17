@@ -416,6 +416,12 @@ export function SimulationForm({
                           <SelectContent className="bg-popover">
                             <SelectItem value="default">Default Levels</SelectItem>
                           </SelectContent>
+                          <SelectContent className="bg-popover">
+                            <SelectItem value="original">Original</SelectItem>
+                          </SelectContent>
+                          <SelectContent className="bg-popover">
+                            <SelectItem value="original_unbalanced">Original Unbalanced</SelectItem>
+                          </SelectContent>
                         </Select>
                         <Button type="button" onClick={addLevel} variant="outline" size="sm">
                           <Plus className="mr-2 h-4 w-4" />
