@@ -47,6 +47,7 @@ export interface SimulationParams {
 export interface SimulationResult {
   id: string;
   timestamp: string;
+  clientsNumber?: number; // Add this to track how many clients were in this simulation
 
   /* core profit‑and‑loss numbers (company perspective) */
   netProfit: number;                 // final company cash after all trades / refunds / commissions
@@ -428,6 +429,19 @@ export function runSimulation({
   }
 
   /* ——— Final aggregation ——— */
+  // Calculate averages per client for this simulation run
+  const avgNetProfit = totalNetProfit.div(clientsNumber);
+  const avgChallengesBought = totalChallengesBought / clientsNumber;
+  const avgChallengesWon = totalChallengesWon / clientsNumber;
+  const avgChallengesLost = totalChallengesLost / clientsNumber;
+  const avgPayoutsCost = totalPayoutsCost.div(clientsNumber);
+  const avgRefundsCost = totalRefundsCost.div(clientsNumber);
+  const avgReimburseBrokerLossCost = totalReimburseBrokerLossCost.div(clientsNumber);
+  const avgExtractedBrokerProfit = totalExtractedBrokerProfit.div(clientsNumber);
+  const avgPropProfit = totalPropProfit.div(clientsNumber);
+  const avgTotalAmountSpent = totalAmountSpent.div(clientsNumber);
+  const avgTotalLots = totalLots.div(clientsNumber);
+
   const totalPayouts = totalPayoutsCost.div(4000).toNumber(); // Assuming base payout of 4000
   const avgPayoutBase = totalChallengesBought > 0 ? totalPayoutsCost.div(totalChallengesBought).toNumber() : 4000;
   const adjustedTotalPayouts = totalPayoutsCost.div(avgPayoutBase).toNumber();
@@ -437,38 +451,40 @@ export function runSimulation({
   return {
     id: crypto.randomUUID(),
     timestamp: new Date().toISOString(),
+    clientsNumber, // Include the number of clients in this simulation
 
-    netProfit: totalNetProfit.toNumber(),
+    // Return averages per client for this simulation run
+    netProfit: avgNetProfit.toNumber(),
 
-    challengesBought: totalChallengesBought,
-    challengesWon: totalChallengesWon,
-    challengesLost: totalChallengesLost,
+    challengesBought: avgChallengesBought,
+    challengesWon: avgChallengesWon,
+    challengesLost: avgChallengesLost,
 
-    payoutsCost: totalPayoutsCost.toNumber(),
-    refundsCost: totalRefundsCost.toNumber(),
-    reimburseBrokerLossCost: totalReimburseBrokerLossCost.toNumber(),
+    payoutsCost: avgPayoutsCost.toNumber(),
+    refundsCost: avgRefundsCost.toNumber(),
+    reimburseBrokerLossCost: avgReimburseBrokerLossCost.toNumber(),
 
-    extractedBrokerProfit: totalExtractedBrokerProfit.toNumber(),
-    propProfit: totalPropProfit.toNumber(),
+    extractedBrokerProfit: avgExtractedBrokerProfit.toNumber(),
+    propProfit: avgPropProfit.toNumber(),
 
-    totalAmountSpent: totalAmountSpent.toNumber(),
-    totalLots: totalLots.toNumber(),
+    totalAmountSpent: avgTotalAmountSpent.toNumber(),
+    totalLots: avgTotalLots.toNumber(),
 
     burnWonChallenges,
     tradeOutputRandom,
     balanceDistributionUsed: effectiveDistribution,
 
     // Legacy compatibility fields - scaled appropriately
-    costOfChallenges: totalAmountSpent.toNumber(), // Total challenge costs
-    propWithdraw: totalPayoutsCost.toNumber(),
-    challengeRefunds: totalRefundsCost.toNumber(),
-    brokerWithdraw: totalExtractedBrokerProfit.toNumber(),
+    costOfChallenges: avgTotalAmountSpent.toNumber(), // Average challenge costs per client
+    propWithdraw: avgPayoutsCost.toNumber(),
+    challengeRefunds: avgRefundsCost.toNumber(),
+    brokerWithdraw: avgExtractedBrokerProfit.toNumber(),
     tradesInReal: totalRealTrades,
     payouts: adjustedTotalPayouts,
     payoutPercentage,
-    avgProfitPerCustomer: totalNetProfit.div(clientsNumber).toNumber(),
+    avgProfitPerCustomer: avgNetProfit.toNumber(),
     totalPropFirmProfit: totalPropProfit.toNumber(),
-    avgProfitPerTrade: totalNetProfit.div(tradesPerClient * clientsNumber).toNumber(),
+    avgProfitPerTrade: avgNetProfit.div(tradesPerClient).toNumber(),
   };
 }
 

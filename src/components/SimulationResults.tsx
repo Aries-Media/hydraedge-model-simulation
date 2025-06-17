@@ -57,6 +57,7 @@ export function SimulationResults({
             <TableHeader>
               <TableRow>
                 <TableHead className="min-w-[140px]">Timestamp</TableHead>
+                <TableHead className="text-center min-w-[100px]">Clients</TableHead>
                 <TableHead className="text-right min-w-[100px]">Net Profit</TableHead>
                 <TableHead className="text-right min-w-[120px]">Challenges Bought</TableHead>
                 <TableHead className="text-right min-w-[120px]">Challenges Won</TableHead>
@@ -78,17 +79,20 @@ export function SimulationResults({
                   <TableCell className="min-w-[140px]">
                     {new Date(result.timestamp).toLocaleString()}
                   </TableCell>
+                  <TableCell className="text-center">
+                    {result.clientsNumber || 'N/A'}
+                  </TableCell>
                   <TableCell className={`text-right ${result.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     ${result.netProfit.toFixed(0)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {result.challengesBought}
+                    {result.challengesBought.toFixed(1)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {result.challengesWon}
+                    {result.challengesWon.toFixed(1)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {result.challengesLost}
+                    {result.challengesLost.toFixed(1)}
                   </TableCell>
                   <TableCell className={`text-right ${result.propProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     ${result.propProfit.toFixed(0)}
