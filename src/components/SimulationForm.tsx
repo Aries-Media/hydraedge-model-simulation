@@ -257,10 +257,8 @@ export function SimulationForm({
     onSubmit({
       clientsNumber: hideClientsField ? 1 : parseInt(values.clientsNumber),
       tradesPerClient: parseInt(values.tradesPerClient),
-      initialBalance: 200000,
-      // Default value when no distribution is used
-      commissionPerTrade: 10,
-      // Fixed default
+      initialBalance: 200000, // Default value when no distribution is used
+      commissionPerTrade: 10, // Fixed default
       burnWonChallenges: values.burnWonChallenges,
       tradeOutputRandom: values.tradeOutputRandom || false,
       maxLossRatio: parseFloat(values.maxLossRatio) / 100,

@@ -1,4 +1,3 @@
-
 import Decimal from 'decimal.js';
 
 Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
@@ -43,6 +42,11 @@ export interface SimulationParams {
   burnWonChallenges?: boolean;
   /** the trade outcome is picked up randomly 50-50 between SL and TP */
   tradeOutputRandom?: boolean;
+
+  /** Risk parameters to override defaults */
+  maxLossRatio?: number;
+  dailyLossRatio?: number;
+  targetProfitRatio?: number;
 }
 
 export interface SimulationResult {
@@ -93,10 +97,11 @@ export interface SimulationResult {
 
 /* ────────── Constants ────────── */
 
-const MAX_DRAWDOWN_RATIO      = new Decimal(0.07);
-const SINGLE_TRADE_STOP_RATIO = new Decimal(0.04);
-const PROFIT_TARGET_RATIO     = new Decimal(0.14);
-const REAL_PHASE_PROFIT_RATIO = new Decimal(1.025); // 2.5 % above start in real phase (205 k / 200 k)
+// Default values - these will be overridden by form parameters
+const DEFAULT_MAX_DRAWDOWN_RATIO      = new Decimal(0.07);
+const DEFAULT_SINGLE_TRADE_STOP_RATIO = new Decimal(0.04);
+const DEFAULT_PROFIT_TARGET_RATIO     = new Decimal(0.14);
+const REAL_PHASE_PROFIT_RATIO     = new Decimal(1.025); // 2.5 % above start in real phase (205 k / 200 k)
 
 const LOT_THRESHOLD_1 = new Decimal(1.06);
 const LOT_THRESHOLD_2 = new Decimal(1.12);
@@ -139,8 +144,8 @@ function buildDefaultRealLevels(start: D): LevelRule[] {
 
 /*
  * Create a level‑picker function that, for a given balance, returns SL/TP.
- * If the level rule leaves TP undefined the engine derives it as the distance
- * between current balance and the tier’s maxBalance – enabling fully
+ * If the level rule leaves TP undefined the engine will derive it as the distance
+ * between current balance and the tier's maxBalance – enabling fully
  * parametric tiers without hard‑coding TP values.
  */
 const makePicker = (levels: LevelRule[]) => {
@@ -221,7 +226,21 @@ export function runSimulation({
   levels,
   burnWonChallenges   = true,
   tradeOutputRandom = false,
+  maxLossRatio = 0.07,
+  dailyLossRatio = 0.04,
+  targetProfitRatio = 0.14,
 }: SimulationParams): SimulationResult {
+  
+  // Use form parameters or defaults
+  const MAX_DRAWDOWN_RATIO = new Decimal(maxLossRatio);
+  const SINGLE_TRADE_STOP_RATIO = new Decimal(dailyLossRatio);
+  const PROFIT_TARGET_RATIO = new Decimal(targetProfitRatio);
+  
+  console.log("Using risk parameters:", {
+    maxLossRatio,
+    dailyLossRatio,
+    targetProfitRatio
+  });
   
   // Handle balance distribution
   let clientBalances: number[];
