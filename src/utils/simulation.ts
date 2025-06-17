@@ -1,3 +1,4 @@
+
 import Decimal from 'decimal.js';
 
 Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
@@ -253,13 +254,15 @@ export function runSimulation({
   for (let clientIndex = 0; clientIndex < clientsNumber; clientIndex++) {
     const clientInitialBalance = clientBalances[clientIndex];
     const scaleFactor = toDec(clientInitialBalance).div(200_000);
+    
+    // Scale challenge cost based on the client's initial balance
     const CHALLENGE_COST = toDec(900).times(scaleFactor);
     const TRADE_LOTS = toDec(8).times(scaleFactor);
     const START = toDec(clientInitialBalance);
     const BROKER_SEED = toDec(brokerSeed ?? 6_000 * scaleFactor.toNumber());
     const COMMISSION_PER_TRADE = toDec(commissionPerTrade);
     const BROKER_BONUS = BROKER_SEED.times(BROKER_MARGIN_FACTOR);
-    const PAYOUT = toDec(4_000).times(START.div(200_000));
+    const PAYOUT = toDec(4_000).times(scaleFactor);
 
     const pickLevels = makePicker(levels ?? buildDefaultLevels(START));
     const pickRealLevels = makePicker(buildDefaultRealLevels(START));
