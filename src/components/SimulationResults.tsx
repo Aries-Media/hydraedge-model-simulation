@@ -1,39 +1,22 @@
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { SimulationResult } from "@/utils/simulation";
 import { useLanguage } from "@/contexts/LanguageContext";
-
 interface SimulationResultsProps {
   results: SimulationResult[];
   onClearResults: () => void;
 }
-
 export function SimulationResults({
   results,
-  onClearResults,
+  onClearResults
 }: SimulationResultsProps) {
-  const { t } = useLanguage();
-  
+  const {
+    t
+  } = useLanguage();
   if (results.length === 0) return null;
-
-  return (
-    <Card className="w-full">
+  return <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>{t("simulationResults")}</CardTitle>
@@ -41,12 +24,7 @@ export function SimulationResults({
             {t("simulationResultsDescription")}
           </CardDescription>
         </div>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={onClearResults}
-          className="ml-4"
-        >
+        <Button variant="destructive" size="sm" onClick={onClearResults} className="ml-4">
           <Trash2 className="h-4 w-4 mr-2" />
           {t("clearResults")}
         </Button>
@@ -57,8 +35,8 @@ export function SimulationResults({
             <TableHeader>
               <TableRow>
                 <TableHead className="min-w-[140px]">Timestamp</TableHead>
-                <TableHead className="text-center min-w-[100px]">Clients</TableHead>
-                <TableHead className="text-right min-w-[100px]">Net Profit</TableHead>
+                <TableHead className="text-center min-w-[100px]"># Clients</TableHead>
+                <TableHead className="text-right min-w-[100px]">Customer Profit</TableHead>
                 <TableHead className="text-right min-w-[120px]">Challenges Bought</TableHead>
                 <TableHead className="text-right min-w-[120px]">Challenges Won</TableHead>
                 <TableHead className="text-right min-w-[120px]">Challenges Lost</TableHead>
@@ -74,8 +52,7 @@ export function SimulationResults({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {results.map((result) => (
-                <TableRow key={result.id}>
+              {results.map(result => <TableRow key={result.id}>
                   <TableCell className="min-w-[140px]">
                     {new Date(result.timestamp).toLocaleString()}
                   </TableCell>
@@ -121,12 +98,10 @@ export function SimulationResults({
                   <TableCell className="text-center">
                     {result.tradeOutputRandom ? "Yes" : "No"}
                   </TableCell>
-                </TableRow>
-              ))}
+                </TableRow>)}
             </TableBody>
           </Table>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 }
