@@ -435,6 +435,7 @@ export function runSimulation({
   /* ——— Final aggregation ——— */
   // Calculate averages per client for this simulation run
   const avgNetProfit = totalNetProfit.div(clientsNumber);
+  const avgPropProfit = totalPropProfit.div(clientsNumber);
   const avgChallengesBought = totalChallengesBought / clientsNumber;
   const avgChallengesWon = totalChallengesWon / clientsNumber;
   const avgChallengesLost = totalChallengesLost / clientsNumber;
@@ -468,7 +469,7 @@ export function runSimulation({
     reimburseBrokerLossCost: avgReimburseBrokerLossCost.toNumber(),
 
     extractedBrokerProfit: avgExtractedBrokerProfit.toNumber(),
-    propProfit: totalPropProfit.toNumber(),
+    propProfit: avgPropProfit.toNumber(),
 
     totalAmountSpent: avgTotalAmountSpent.toNumber(),
     totalLots: avgTotalLots.toNumber(),
