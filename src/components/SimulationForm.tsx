@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import * as z from "zod";
@@ -24,6 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Loader2, Plus, Trash2, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LevelRule } from "@/utils/simulation";
@@ -56,7 +56,7 @@ const formSchema = z.object({
     return !isNaN(num) && num >= 1 && num <= 1000;
   }, "Must be a number between 1 and 1000"),
   burnWonChallenges: z.boolean(),
-  tradeOutputRandom: z.boolean(),
+  tradeOutputRandom: z.boolean().optional(),
   levels: z.array(levelRuleSchema).optional(),
 });
 
@@ -121,7 +121,7 @@ export function SimulationForm({
       initialBalance: 200000, // Fixed default value
       commissionPerTrade: 10, // Fixed default
       burnWonChallenges: values.burnWonChallenges,
-      tradeOutputRandom: values.tradeOutputRandom,
+      tradeOutputRandom: values.tradeOutputRandom || false,
       levels,
     });
   };
@@ -209,20 +209,20 @@ export function SimulationForm({
                   name="tradeOutputRandom"
                   render={({ field }) => (
                     <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>Trade Outcome Random</FormLabel>
+                      <FormLabel>Trade Outcome Random (Optional)</FormLabel>
                       <FormControl>
                         <div className="flex items-center space-x-2">
-                          <Checkbox
-                            checked={field.value}
+                          <Switch
+                            checked={field.value || false}
                             onCheckedChange={field.onChange}
                           />
-                          <span className="text-sm">
-                            {field.value ? "Enabled" : "Disabled"}
+                          <span className="text-sm text-muted-foreground">
+                            {field.value ? "Random outcomes" : "Probability-based"}
                           </span>
                         </div>
                       </FormControl>
                       <FormDescription>
-                        Use random 50-50 trade outcomes instead of probability-based
+                        Enable for random 50-50 trade outcomes instead of probability-based results
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
