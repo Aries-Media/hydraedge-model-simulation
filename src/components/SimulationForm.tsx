@@ -91,18 +91,6 @@ const formSchema = z.object({
   }, "Must be a number between 1 and 1000"),
   burnWonChallenges: z.boolean(),
   tradeOutputRandom: z.boolean().optional(),
-  maxDrawdownRatio: z.string().refine((val) => {
-    const num = parseFloat(val);
-    return !isNaN(num) && num > 0 && num <= 100;
-  }, "Must be a percentage between 0 and 100"),
-  singleTradeStopRatio: z.string().refine((val) => {
-    const num = parseFloat(val);
-    return !isNaN(num) && num > 0 && num <= 100;
-  }, "Must be a percentage between 0 and 100"),
-  profitTargetRatio: z.string().refine((val) => {
-    const num = parseFloat(val);
-    return !isNaN(num) && num > 0 && num <= 100;
-  }, "Must be a percentage between 0 and 100"),
   levels: z.array(levelRuleSchema).optional(),
   balanceDistribution: z.array(balanceDistributionSchema).optional(),
 });
@@ -115,9 +103,6 @@ interface SimulationFormProps {
     commissionPerTrade: number;
     burnWonChallenges: boolean;
     tradeOutputRandom: boolean;
-    maxDrawdownRatio: number;
-    singleTradeStopRatio: number;
-    profitTargetRatio: number;
     levels?: LevelRule[];
     balanceDistribution?: BalanceDistribution[];
   }) => void;
@@ -143,11 +128,8 @@ export function SimulationForm({
     defaultValues: {
       clientsNumber: "500",
       tradesPerClient: "250",
-      burnWonChallenges: true,
+      burnWonChallenges: false,
       tradeOutputRandom: false,
-      maxDrawdownRatio: "7",
-      singleTradeStopRatio: "4",
-      profitTargetRatio: "14",
       levels: PRESET_LEVELS.default,
       balanceDistribution: [
         { balance: "200000", percentage: "20" },
@@ -208,9 +190,6 @@ export function SimulationForm({
       commissionPerTrade: 10, // Fixed default
       burnWonChallenges: values.burnWonChallenges,
       tradeOutputRandom: values.tradeOutputRandom || false,
-      maxDrawdownRatio: parseFloat(values.maxDrawdownRatio) / 100, // Convert percentage to decimal
-      singleTradeStopRatio: parseFloat(values.singleTradeStopRatio) / 100, // Convert percentage to decimal
-      profitTargetRatio: parseFloat(values.profitTargetRatio) / 100, // Convert percentage to decimal
       levels,
       balanceDistribution,
     });
@@ -270,61 +249,6 @@ export function SimulationForm({
                     )}
                   />
                 )}
-              </div>
-
-              {/* Risk Parameters Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Risk Parameters</h3>
-                <div className="flex flex-wrap gap-4">
-                  <FormField
-                    control={form.control}
-                    name="maxDrawdownRatio"
-                    render={({ field }) => (
-                      <FormItem className="flex-1 min-w-[200px]">
-                        <FormLabel>Max Loss (%)</FormLabel>
-                        <FormControl>
-                          <Input type="number" step="0.1" min="0" max="100" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Maximum drawdown percentage allowed
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="singleTradeStopRatio"
-                    render={({ field }) => (
-                      <FormItem className="flex-1 min-w-[200px]">
-                        <FormLabel>Daily Loss (%)</FormLabel>
-                        <FormControl>
-                          <Input type="number" step="0.1" min="0" max="100" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Maximum single trade stop loss percentage
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="profitTargetRatio"
-                    render={({ field }) => (
-                      <FormItem className="flex-1 min-w-[200px]">
-                        <FormLabel>Target Profit (%)</FormLabel>
-                        <FormControl>
-                          <Input type="number" step="0.1" min="0" max="100" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Profit target percentage to pass the challenge
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
               </div>
               
               <div className="flex flex-wrap gap-4">

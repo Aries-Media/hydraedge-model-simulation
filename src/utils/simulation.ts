@@ -1,3 +1,4 @@
+
 import Decimal from 'decimal.js';
 
 Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
@@ -42,11 +43,6 @@ export interface SimulationParams {
   burnWonChallenges?: boolean;
   /** the trade outcome is picked up randomly 50-50 between SL and TP */
   tradeOutputRandom?: boolean;
-  
-  /** configurable risk parameters */
-  maxDrawdownRatio?: D | number;     // Max Loss percentage (default 7%)
-  singleTradeStopRatio?: D | number; // Daily Loss percentage (default 4%)
-  profitTargetRatio?: D | number;    // Target Profit percentage (default 14%)
 }
 
 export interface SimulationResult {
@@ -173,11 +169,11 @@ const hedgeCoeff = (bal: D, start: D): D => {
 };
 
 /** Returns "SL" or "TP" with probability driven by SL / TP distances. */
-const pickOutcome = (sl: D, tp: D, random = false): 'SL' | 'TP' => {
+const pickOutcome = (sl: D, tp: D, random = false): "SL" | "TP" => {
   if (random) return Math.round(Math.random()) ? "SL" : "TP";
   
   const pSL = tp.div(sl.plus(tp)).toNumber();
-  return Math.random() < pSL ? 'SL' : 'TP';
+  return Math.random() < pSL ? "SL" : "TP";
 };
 
 /* Helper function to generate client balance assignments based on distribution */
@@ -225,16 +221,8 @@ export function runSimulation({
   levels,
   burnWonChallenges   = true,
   tradeOutputRandom = false,
-  maxDrawdownRatio = 0.07,
-  singleTradeStopRatio = 0.04,
-  profitTargetRatio = 0.14,
 }: SimulationParams): SimulationResult {
   
-  // Convert the configurable parameters to Decimal
-  const MAX_DRAWDOWN_RATIO = toDec(maxDrawdownRatio);
-  const SINGLE_TRADE_STOP_RATIO = toDec(singleTradeStopRatio);
-  const PROFIT_TARGET_RATIO = toDec(profitTargetRatio);
-
   // Handle balance distribution
   let clientBalances: number[];
   let effectiveDistribution: BalanceDistribution[] | undefined;
