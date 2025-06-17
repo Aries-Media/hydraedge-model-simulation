@@ -105,6 +105,18 @@ const formSchema = z.object({
   }, "Must be a number between 1 and 1000"),
   burnWonChallenges: z.boolean(),
   tradeOutputRandom: z.boolean().optional(),
+  maxLossRatio: z.string().refine(val => {
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0 && num <= 100;
+  }, "Must be a percentage between 0 and 100"),
+  dailyLossRatio: z.string().refine(val => {
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0 && num <= 100;
+  }, "Must be a percentage between 0 and 100"),
+  targetProfitRatio: z.string().refine(val => {
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0 && num <= 100;
+  }, "Must be a percentage between 0 and 100"),
   levels: z.array(levelRuleSchema).optional(),
   balanceDistribution: z.array(balanceDistributionSchema).optional()
 });
@@ -116,6 +128,9 @@ interface SimulationFormProps {
     commissionPerTrade: number;
     burnWonChallenges: boolean;
     tradeOutputRandom: boolean;
+    maxLossRatio: number;
+    dailyLossRatio: number;
+    targetProfitRatio: number;
     levels?: LevelRule[];
     balanceDistribution?: BalanceDistribution[];
   }) => void;
@@ -136,6 +151,7 @@ export function SimulationForm({
   } = useLanguage();
   const [isLevelsOpen, setIsLevelsOpen] = useState(false);
   const [isBalanceDistributionOpen, setIsBalanceDistributionOpen] = useState(false);
+  const [isRiskParametersOpen, setIsRiskParametersOpen] = useState(true);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -143,6 +159,9 @@ export function SimulationForm({
       tradesPerClient: "250",
       burnWonChallenges: true,
       tradeOutputRandom: false,
+      maxLossRatio: "7",
+      dailyLossRatio: "4",
+      targetProfitRatio: "14",
       levels: PRESET_LEVELS.default,
       balanceDistribution: [{
         balance: "200000",
@@ -213,6 +232,9 @@ export function SimulationForm({
       // Fixed default
       burnWonChallenges: values.burnWonChallenges,
       tradeOutputRandom: values.tradeOutputRandom || false,
+      maxLossRatio: parseFloat(values.maxLossRatio) / 100,
+      dailyLossRatio: parseFloat(values.dailyLossRatio) / 100,
+      targetProfitRatio: parseFloat(values.targetProfitRatio) / 100,
       levels,
       balanceDistribution
     });
@@ -302,6 +324,69 @@ export function SimulationForm({
                       <FormMessage />
                     </FormItem>} />
               </div>
+
+              {/* Risk Parameters Configuration Section */}
+              <Collapsible open={isRiskParametersOpen} onOpenChange={setIsRiskParametersOpen}>
+                <div className="space-y-4">
+                  <CollapsibleTrigger asChild>
+                    <Button type="button" variant="outline" className="flex w-full items-center justify-between p-4 hover:bg-muted/50">
+                      <h3 className="text-lg font-medium">Risk Parameters</h3>
+                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isRiskParametersOpen ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">Configure risk management parameters as percentages.</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="maxLossRatio"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Max Loss (%)</FormLabel>
+                            <FormControl>
+                              <Input type="number" step="0.1" min="0" max="100" {...field} />
+                            </FormControl>
+                            <FormDescription>Maximum drawdown percentage</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="dailyLossRatio"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Daily Loss (%)</FormLabel>
+                            <FormControl>
+                              <Input type="number" step="0.1" min="0" max="100" {...field} />
+                            </FormControl>
+                            <FormDescription>Maximum daily loss percentage</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="targetProfitRatio"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Target Profit (%)</FormLabel>
+                            <FormControl>
+                              <Input type="number" step="0.1" min="0" max="100" {...field} />
+                            </FormControl>
+                            <FormDescription>Profit target percentage</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
 
               {/* Balance Distribution Configuration Section */}
               <Collapsible open={isBalanceDistributionOpen} onOpenChange={setIsBalanceDistributionOpen}>
