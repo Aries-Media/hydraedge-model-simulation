@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import * as z from "zod";
@@ -91,6 +90,18 @@ const formSchema = z.object({
   }, "Must be a number between 1 and 1000"),
   burnWonChallenges: z.boolean(),
   tradeOutputRandom: z.boolean().optional(),
+  maxLoss: z.string().refine((val) => {
+    const num = parseFloat(val);
+    return !isNaN(num) && num >= 0 && num <= 100;
+  }, "Must be a number between 0 and 100"),
+  dailyLoss: z.string().refine((val) => {
+    const num = parseFloat(val);
+    return !isNaN(num) && num >= 0 && num <= 100;
+  }, "Must be a number between 0 and 100"),
+  targetProfit: z.string().refine((val) => {
+    const num = parseFloat(val);
+    return !isNaN(num) && num >= 0 && num <= 100;
+  }, "Must be a number between 0 and 100"),
   levels: z.array(levelRuleSchema).optional(),
   balanceDistribution: z.array(balanceDistributionSchema).optional(),
 });
@@ -103,6 +114,9 @@ interface SimulationFormProps {
     commissionPerTrade: number;
     burnWonChallenges: boolean;
     tradeOutputRandom: boolean;
+    maxDrawdownRatio: number;
+    singleTradeStopRatio: number;
+    profitTargetRatio: number;
     levels?: LevelRule[];
     balanceDistribution?: BalanceDistribution[];
   }) => void;
@@ -122,6 +136,7 @@ export function SimulationForm({
   const { t } = useLanguage();
   const [isLevelsOpen, setIsLevelsOpen] = useState(false);
   const [isBalanceDistributionOpen, setIsBalanceDistributionOpen] = useState(false);
+  const [isRiskParamsOpen, setIsRiskParamsOpen] = useState(true); // Set to true by default
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -130,6 +145,9 @@ export function SimulationForm({
       tradesPerClient: "250",
       burnWonChallenges: false,
       tradeOutputRandom: false,
+      maxLoss: "7",
+      dailyLoss: "4",
+      targetProfit: "14",
       levels: PRESET_LEVELS.default,
       balanceDistribution: [
         { balance: "200000", percentage: "20" },
@@ -190,6 +208,9 @@ export function SimulationForm({
       commissionPerTrade: 10, // Fixed default
       burnWonChallenges: values.burnWonChallenges,
       tradeOutputRandom: values.tradeOutputRandom || false,
+      maxDrawdownRatio: parseFloat(values.maxLoss) / 100,
+      singleTradeStopRatio: parseFloat(values.dailyLoss) / 100,
+      profitTargetRatio: parseFloat(values.targetProfit) / 100,
       levels,
       balanceDistribution,
     });
@@ -302,6 +323,79 @@ export function SimulationForm({
                   )}
                 />
               </div>
+
+              {/* Risk Parameters Configuration Section */}
+              <Collapsible open={isRiskParamsOpen} onOpenChange={setIsRiskParamsOpen}>
+                <div className="space-y-4">
+                  <CollapsibleTrigger asChild>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="flex w-full items-center justify-between p-4 hover:bg-muted/50"
+                    >
+                      <h3 className="text-lg font-medium">Risk Parameters</h3>
+                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isRiskParamsOpen ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">Configure the risk management parameters for the simulation.</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="maxLoss"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Max Loss (%)</FormLabel>
+                            <FormControl>
+                              <Input type="number" step="0.1" min="0" max="100" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              Maximum drawdown allowed (default: 7%)
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="dailyLoss"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Daily Loss (%)</FormLabel>
+                            <FormControl>
+                              <Input type="number" step="0.1" min="0" max="100" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              Maximum single trade loss allowed (default: 4%)
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="targetProfit"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Target Profit (%)</FormLabel>
+                            <FormControl>
+                              <Input type="number" step="0.1" min="0" max="100" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              Profit target to pass challenge (default: 14%)
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
 
               {/* Balance Distribution Configuration Section */}
               <Collapsible open={isBalanceDistributionOpen} onOpenChange={setIsBalanceDistributionOpen}>
