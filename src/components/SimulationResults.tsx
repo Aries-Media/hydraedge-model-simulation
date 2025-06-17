@@ -38,12 +38,12 @@ export function SimulationResults({
     challengesBought: results.reduce((acc, curr) => acc + curr.challengesBought, 0) / results.length,
     challengesWon: results.reduce((acc, curr) => acc + curr.challengesWon, 0) / results.length,
     challengesLost: results.reduce((acc, curr) => acc + curr.challengesLost, 0) / results.length,
+    propProfit: results.reduce((acc, curr) => acc + curr.propProfit, 0) / results.length,
     payoutsCost: results.reduce((acc, curr) => acc + curr.payoutsCost, 0) / results.length,
     refundsCost: results.reduce((acc, curr) => acc + curr.refundsCost, 0) / results.length,
     reimburseBrokerLossCost: results.reduce((acc, curr) => acc + curr.reimburseBrokerLossCost, 0) / results.length,
     extractedBrokerProfit: results.reduce((acc, curr) => acc + curr.extractedBrokerProfit, 0) / results.length,
     totalLots: results.reduce((acc, curr) => acc + curr.totalLots, 0) / results.length,
-    propProfit: results.reduce((acc, curr) => acc + curr.propProfit, 0) / results.length,
     totalAmountSpent: results.reduce((acc, curr) => acc + curr.totalAmountSpent, 0) / results.length,
   };
 
@@ -76,12 +76,12 @@ export function SimulationResults({
                 <TableHead className="text-right min-w-[120px]">Challenges Bought</TableHead>
                 <TableHead className="text-right min-w-[120px]">Challenges Won</TableHead>
                 <TableHead className="text-right min-w-[120px]">Challenges Lost</TableHead>
+                <TableHead className="text-right min-w-[100px]">Prop Profit</TableHead>
                 <TableHead className="text-right min-w-[100px]">Payouts Cost</TableHead>
                 <TableHead className="text-right min-w-[100px]">Refunds Cost</TableHead>
                 <TableHead className="text-right min-w-[140px]">Reimburse Broker Loss Cost</TableHead>
                 <TableHead className="text-right min-w-[140px]">Extracted Broker Profit</TableHead>
                 <TableHead className="text-right min-w-[100px]">Total Lots</TableHead>
-                <TableHead className="text-right min-w-[100px]">Prop Profit</TableHead>
                 <TableHead className="text-right min-w-[120px]">Total Amount Spent</TableHead>
               </TableRow>
             </TableHeader>
@@ -103,6 +103,9 @@ export function SimulationResults({
                   <TableCell className="text-right">
                     {result.challengesLost}
                   </TableCell>
+                  <TableCell className={`text-right ${result.propProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {result.propProfit.toFixed(0)}
+                  </TableCell>
                   <TableCell className="text-right">
                     {result.payoutsCost.toFixed(0)}
                   </TableCell>
@@ -117,9 +120,6 @@ export function SimulationResults({
                   </TableCell>
                   <TableCell className="text-right">
                     {result.totalLots.toFixed(0)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {result.propProfit.toFixed(0)}
                   </TableCell>
                   <TableCell className="text-right">
                     {result.totalAmountSpent.toFixed(0)}
@@ -140,6 +140,9 @@ export function SimulationResults({
                 <TableCell className="text-right">
                   {averages.challengesLost.toFixed(2)}
                 </TableCell>
+                <TableCell className={`text-right ${averages.propProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {averages.propProfit.toFixed(0)}
+                </TableCell>
                 <TableCell className="text-right">
                   {averages.payoutsCost.toFixed(0)}
                 </TableCell>
@@ -154,9 +157,6 @@ export function SimulationResults({
                 </TableCell>
                 <TableCell className="text-right">
                   {averages.totalLots.toFixed(0)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {averages.propProfit.toFixed(0)}
                 </TableCell>
                 <TableCell className="text-right">
                   {averages.totalAmountSpent.toFixed(0)}
