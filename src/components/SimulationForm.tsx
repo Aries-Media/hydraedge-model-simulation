@@ -34,22 +34,22 @@ import { useState } from "react";
 // Define preset trading levels
 const PRESET_LEVELS = {
   original: [
-    { maxBalance: "200000", sl: "6000", tp: "6000" },
-    { maxBalance: "223000", sl: "6000", tp: "6000" },
-    { maxBalance: "228000", sl: "6000", tp: "" },
+    { maxBalance: "200001", sl: "6000", tp: "6000" },
+    { maxBalance: "223001", sl: "6000", tp: "6000" },
+    { maxBalance: "228001", sl: "6000", tp: "" },
   ],
   original_unbalanced: [
-    { maxBalance: "200000", sl: "8200", tp: "5000" },
-    { maxBalance: "223000", sl: "6000", tp: "5000" },
-    { maxBalance: "228000", sl: "6000", tp: "" },
+    { maxBalance: "200001", sl: "8200", tp: "5000" },
+    { maxBalance: "223001", sl: "6000", tp: "5000" },
+    { maxBalance: "228001", sl: "6000", tp: "" },
   ],
   default: [
-    { maxBalance: "200000", sl: "8200", tp: "6000" },
-    { maxBalance: "206000", sl: "7000", tp: "6000" },
-    { maxBalance: "212000", sl: "8400", tp: "6000" },
-    { maxBalance: "218000", sl: "7000", tp: "6000" },
-    { maxBalance: "224000", sl: "8800", tp: "" },
-    { maxBalance: "228000", sl: "7000", tp: "" },
+    { maxBalance: "200001", sl: "8200", tp: "6000" },
+    { maxBalance: "206001", sl: "7000", tp: "6000" },
+    { maxBalance: "212001", sl: "8400", tp: "6000" },
+    { maxBalance: "218001", sl: "7000", tp: "6000" },
+    { maxBalance: "224001", sl: "8800", tp: "" },
+    { maxBalance: "228001", sl: "7000", tp: "" },
   ],
 };
 
