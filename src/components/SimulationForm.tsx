@@ -521,7 +521,7 @@ export function SimulationForm({
               </Collapsible>
             </div>
             {showSubmitButton && (
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-black hover:bg-gray-800 text-white" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
