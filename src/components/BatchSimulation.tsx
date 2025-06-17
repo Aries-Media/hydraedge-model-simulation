@@ -23,7 +23,7 @@ export function BatchSimulation() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [params, setParams] = useState({
     clientsNumber: 500,
-    tradesPerClient: 180,
+    tradesPerClient: 250,
     initialBalance: 200000,
     commissionPerTrade: 10,
     burnWonChallenges: true,

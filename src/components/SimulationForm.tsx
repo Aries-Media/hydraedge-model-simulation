@@ -90,7 +90,7 @@ export function SimulationForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       clientsNumber: "500",
-      tradesPerClient: "180",
+      tradesPerClient: "250",
       burnWonChallenges: true,
       tradeOutputRandom: false,
       levels: [

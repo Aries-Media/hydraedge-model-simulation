@@ -39,7 +39,7 @@ export function SimulationFormV1({ onSubmit, isLoading }: SimulationFormV1Props)
     resolver: zodResolver(formSchema),
     defaultValues: {
       clientsNumber: 1000,
-      tradesPerClient: 100,
+      tradesPerClient: 250,
       challengeCost: 900,
       tpGainChallenge: 1725,
       slLossChallenge: 1500,
