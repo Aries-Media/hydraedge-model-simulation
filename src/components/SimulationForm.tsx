@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import * as z from "zod";
@@ -24,11 +23,24 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Plus, Trash2, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LevelRule, BalanceDistribution } from "@/utils/simulation";
 import Decimal from 'decimal.js';
 import { useState } from "react";
+
+// Define preset trading levels
+const PRESET_LEVELS = {
+  default: [
+    { maxBalance: "200000", sl: "8200", tp: "6000" },
+    { maxBalance: "206000", sl: "7000", tp: "6000" },
+    { maxBalance: "212000", sl: "8400", tp: "6000" },
+    { maxBalance: "218000", sl: "7000", tp: "6000" },
+    { maxBalance: "224000", sl: "8800", tp: "" },
+    { maxBalance: "228000", sl: "7000", tp: "" },
+  ]
+};
 
 const levelRuleSchema = z.object({
   maxBalance: z.string().refine((val) => {
@@ -107,14 +119,7 @@ export function SimulationForm({
       tradesPerClient: "250",
       burnWonChallenges: true,
       tradeOutputRandom: false,
-      levels: [
-        { maxBalance: "200000", sl: "8200", tp: "6000" },
-        { maxBalance: "206000", sl: "7000", tp: "6000" },
-        { maxBalance: "212000", sl: "8400", tp: "6000" },
-        { maxBalance: "218000", sl: "7000", tp: "6000" },
-        { maxBalance: "224000", sl: "8800", tp: "" },
-        { maxBalance: "228000", sl: "7000", tp: "" },
-      ],
+      levels: PRESET_LEVELS.default,
       balanceDistribution: [
         { balance: "200000", percentage: "20" },
         { balance: "100000", percentage: "40" },
@@ -123,7 +128,7 @@ export function SimulationForm({
     },
   });
 
-  const { fields: levelFields, append: appendLevel, remove: removeLevel } = useFieldArray({
+  const { fields: levelFields, append: appendLevel, remove: removeLevel, replace: replaceLevels } = useFieldArray({
     control: form.control,
     name: "levels",
   });
@@ -132,6 +137,12 @@ export function SimulationForm({
     control: form.control,
     name: "balanceDistribution",
   });
+
+  const handlePresetSelect = (presetKey: string) => {
+    if (presetKey === "default") {
+      replaceLevels(PRESET_LEVELS.default);
+    }
+  };
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     const levels: LevelRule[] | undefined = values.levels?.map(level => ({
@@ -387,10 +398,20 @@ export function SimulationForm({
                   <CollapsibleContent className="space-y-4">
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-muted-foreground">Define custom trading levels with specific balance ranges and rules.</p>
-                      <Button type="button" onClick={addLevel} variant="outline" size="sm">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Level
-                      </Button>
+                      <div className="flex gap-2">
+                        <Select onValueChange={handlePresetSelect}>
+                          <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Select preset levels" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover">
+                            <SelectItem value="default">Default Levels</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button type="button" onClick={addLevel} variant="outline" size="sm">
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add Level
+                        </Button>
+                      </div>
                     </div>
                     
                     {levelFields.length > 0 && (
