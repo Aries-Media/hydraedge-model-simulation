@@ -31,6 +31,8 @@ export interface SimulationParams {
   levels?: LevelRule[];                      // custom tier map (Decimal)
   /** the challenge is burned and the whole reimbursement emitted */
   burnWonChallenges?: boolean;
+  /** the trade outcome is picked up randomly 50-50 between SL and TP */
+  tradeOutputRandom?: boolean;
 }
 
 export interface SimulationResult {
@@ -137,7 +139,9 @@ const hedgeCoeff = (bal: D, start: D): D => {
 };
 
 /** Returns "SL" or "TP" with probability driven by SL / TP distances. */
-const pickOutcome = (sl: D, tp: D): 'SL' | 'TP' => {
+const pickOutcome = (sl: D, tp: D, random = false): 'SL' | 'TP' => {
+  if (random) return Math.round(Math.random()) ? "SL" : "TP";
+  
   const pSL = tp.div(sl.plus(tp)).toNumber();
   return Math.random() < pSL ? 'SL' : 'TP';
 };
@@ -152,6 +156,7 @@ export function runSimulation({
   brokerStartBalance: brokerSeed,
   levels,
   burnWonChallenges   = true,
+  tradeOutputRandom = false,
 }: SimulationParams): SimulationResult {
   const scaleFactor        = toDec(initialBalance).div(200_000);
   const CHALLENGE_COST     = toDec(900).times(scaleFactor);
