@@ -99,6 +99,7 @@ export function SimulationForm({
         { maxBalance: "212000", sl: "8400", tp: "6000" },
         { maxBalance: "218000", sl: "7000", tp: "6000" },
         { maxBalance: "224000", sl: "8800", tp: "" },
+        { maxBalance: "228000", sl: "7000", tp: "" },
       ],
     },
   });
