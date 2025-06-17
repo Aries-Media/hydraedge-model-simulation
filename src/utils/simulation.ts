@@ -10,8 +10,11 @@ export interface LevelRule {
   maxBalance: D;                             // inclusive upper bound
   /** stop‑loss distance in account currency (number) or function of balance */
   sl: D | ((balance: D) => D);               // stop-loss distance
-  /** take‑profit distance in account currency (number) or function of balance */
-  tp: D | ((balance: D) => D);               // take-profit distance
+  /**
+   * take‑profit distance. When omitted the engine will derive it at run‑time
+   * as (maxBalance – currentBalance), i.e. “close the gap to the tier ceiling”.
+   */
+  tp?: D | ((balance: D) => D);
 }
 
 export interface SimulationParams {
@@ -105,7 +108,7 @@ function buildDefaultLevels(start: D): LevelRule[] {
     { maxBalance: start.times(1.03),    sl: toDec(7_000).times(sf), tp: toDec(6_000).times(sf) },
     { maxBalance: start.times(1.06),    sl: (b:D)=>b.times(0.04).plus(toDec(200).times(sf)), tp: toDec(6_000).times(sf) },
     { maxBalance: start.times(1.09),    sl: toDec(7_000).times(sf), tp: toDec(6_000).times(sf) },
-    { maxBalance: start.times(1.12).plus(1), sl: (b:D)=>b.times(0.04).plus(toDec(200).times(sf)), tp: (b:D)=>start.times(1.14).minus(b) },
+    { maxBalance: start.times(1.12).plus(1), sl: (b:D)=>b.times(0.04).plus(toDec(200).times(sf)) },
   ];
 }
 
@@ -115,20 +118,32 @@ function buildDefaultRealLevels(start: D): LevelRule[] {
   return [
     { maxBalance: start.times(0.98), sl: toDec(8_200).times(sf), tp: toDec(2_000).times(sf) },
     { maxBalance: start,             sl: toDec(8_200).times(sf), tp: toDec(4_000).times(sf) },
-    { maxBalance: start.times(1.02).plus(1), sl: toDec(7_000).times(sf), tp: (b:D)=>start.times(REAL_PHASE_PROFIT_RATIO).minus(b) },
+    { maxBalance: start.times(1.02).plus(1), sl: toDec(7_000).times(sf) },
   ];
 }
 
-/** Converts a list of LevelRule into a function returning the SL/TP tuple. */
-function makePicker(levels: LevelRule[]) {
+/*
+ * Create a level‑picker function that, for a given balance, returns SL/TP.
+ * If the level rule leaves TP undefined the engine derives it as the distance
+ * between current balance and the tier’s maxBalance – enabling fully
+ * parametric tiers without hard‑coding TP values.
+ */
+const makePicker = (levels: LevelRule[]) => {
   const last = levels[levels.length - 1];
-  return (balance: Decimal) => {
-    for (const lvl of levels) if (balance.lte(lvl.maxBalance)) {
-      return { sl: lift(lvl.sl, balance), tp: lift(lvl.tp, balance) };
+  return (bal: D) => {
+    for (const lvl of levels) if (bal.lte(lvl.maxBalance)) {
+      const sl = lift(lvl.sl, bal);
+      const tp = lvl.tp === undefined
+        ? toDec(lvl.maxBalance).minus(bal)      // dynamic TP = gap to ceiling
+        : lift(lvl.tp, bal);
+      return { sl, tp };
     }
-    return { sl: lift(last.sl, balance), tp: lift(last.tp, balance) };
+    /* fall back to last rule */
+    const sl = lift(last.sl, bal);
+    const tp = last.tp === undefined ? toDec(last.maxBalance).minus(bal) : lift(last.tp, bal);
+    return { sl, tp };
   };
-}
+};
 
 /** Hedging lot‑coefficient for the current balance (scaled variants). */
 const hedgeCoeff = (bal: D, start: D): D => {
