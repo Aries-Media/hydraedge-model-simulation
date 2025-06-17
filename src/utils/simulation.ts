@@ -488,18 +488,9 @@ export function runSimulation({
   };
 }
 
-/* Convenience wrapper that also pretty‑prints the result. */
-export function runSimulationAndDisplay(params: SimulationParams): SimulationResult | SimulationResult[] {
-  if (params.clientsNumber > 1) {
-    const list: SimulationResult[] = [];
-    for (let i = 0; i < params.clientsNumber; i++) {
-      const singleClientParams = { ...params, clientsNumber: 1 };
-      const res = runSimulation(singleClientParams);
-      list.push(res);
-    }
-    return list;
-  }
-
+/* Convenience wrapper that runs a single simulation regardless of client count. */
+export function runSimulationAndDisplay(params: SimulationParams): SimulationResult {
+  // Always run a single simulation that aggregates all clients
   const result = runSimulation(params);
   return result;
 }
