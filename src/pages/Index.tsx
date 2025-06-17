@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { SimulationForm } from "@/components/SimulationForm";
 import { SimulationFormV1 } from "@/components/SimulationFormV1";
@@ -8,7 +7,7 @@ import { BatchSimulation } from "@/components/BatchSimulation";
 import { CustomerView } from "@/components/CustomerView";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useToast } from "@/hooks/use-toast";
-import { SimulationResult, runSimulation } from "@/utils/simulation";
+import { SimulationResult, runSimulationAndDisplay } from "@/utils/simulation";
 import { SimulationResultV1, runSimulationV1 } from "@/utils/simulationV1";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -33,8 +32,14 @@ const Index = () => {
     setIsLoading(true);
     try {
       console.log("Running simulation", values);
-      const result = runSimulation(values);
-      setResults((prev) => [result, ...prev]);
+      const result = runSimulationAndDisplay(values);
+      
+      // Handle both single result and array of results
+      if (Array.isArray(result)) {
+        setResults((prev) => [...result, ...prev]);
+      } else {
+        setResults((prev) => [result, ...prev]);
+      }
     } catch (error) {
       toast({
         title: t("simulationFailed"),

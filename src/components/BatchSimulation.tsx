@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { SimulationResult, runSimulation } from "@/utils/simulation";
+import { SimulationResult, runSimulationAndDisplay } from "@/utils/simulation";
 import { SimulationResults } from "@/components/SimulationResults";
 import { SimulationForm } from "@/components/SimulationForm";
 import { Loader2 } from "lucide-react";
@@ -37,8 +36,14 @@ export function BatchSimulation() {
 
     try {
       for (let i = 0; i < n; i++) {
-        const result = runSimulation(params);
-        results.push(result);
+        const result = runSimulationAndDisplay(params);
+        
+        // Handle both single result and array of results
+        if (Array.isArray(result)) {
+          results.push(...result);
+        } else {
+          results.push(result);
+        }
       }
 
       setBatchResults(results);
