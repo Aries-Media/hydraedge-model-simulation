@@ -209,7 +209,7 @@ export function SimulationForm({
                   name="tradeOutputRandom"
                   render={({ field }) => (
                     <FormItem className="flex-1 min-w-[200px]">
-                      <FormLabel>Trade Outcome Random (Optional)</FormLabel>
+                      <FormLabel>Trade Outcome Random</FormLabel>
                       <FormControl>
                         <div className="flex items-center space-x-2">
                           <Checkbox
