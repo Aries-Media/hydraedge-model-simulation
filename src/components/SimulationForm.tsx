@@ -43,35 +43,6 @@ const PRESET_LEVELS = {
     sl: "6000",
     tp: ""
   }],
-  new: [{
-    maxBalance: "200000",
-    sl: "10200",
-    tp: "6000"
-  }, {
-    maxBalance: "206000",
-    sl: "8000",
-    tp: "6000"
-  }, {
-    maxBalance: "212000",
-    sl: "10800",
-    tp: "5000"
-  }, {
-    maxBalance: "217000",
-    sl: "8000",
-    tp: "5000"
-  }, {
-    maxBalance: "222000",
-    sl: "11400",
-    tp: "4000"
-  }, {
-    maxBalance: "226000",
-    sl: "8000",
-    tp: "4000"
-  }, {
-    maxBalance: "230000",
-    sl: "8000",
-    tp: ""
-  }],
   mid: [{
     maxBalance: "200000",
     sl: "8200",
@@ -186,7 +157,7 @@ export function SimulationForm({
     defaultValues: {
       clientsNumber: "500",
       tradesPerClient: "250",
-      burnWonChallenges: true,
+      burnWonChallenges: false,
       tradeOutputRandom: false,
       maxLossRatio: "7",
       dailyLossRatio: "4",
@@ -226,10 +197,8 @@ export function SimulationForm({
       replaceLevels(PRESET_LEVELS.default);
     } else if (presetKey === "original") {
       replaceLevels(PRESET_LEVELS.original);
-    } else if (presetKey === "mid") {
-      replaceLevels(PRESET_LEVELS.mid);
-    } else if (presetKey === "new") {
-      replaceLevels(PRESET_LEVELS.new);
+    } else if (presetKey === "original_unbalanced") {
+      replaceLevels(PRESET_LEVELS.original_unbalanced);
     }
   };
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
@@ -510,7 +479,6 @@ export function SimulationForm({
                           <SelectContent className="bg-popover z-50">
                             <SelectItem value="default">Original Unbalanced</SelectItem>
                             <SelectItem value="original">Original</SelectItem>
-                            <SelectItem value="new">New Strategy</SelectItem>
                             <SelectItem value="mid">Mid</SelectItem>
                           </SelectContent>
                         </Select>

@@ -494,6 +494,7 @@ export function runSimulation({
 
 /* Convenience wrapper that runs a single simulation regardless of client count. */
 export function runSimulationAndDisplay(params: SimulationParams): SimulationResult {
+  console.log("Running simulation:", params);
   // Always run a single simulation that aggregates all clients
   const result = runSimulation(params);
   return result;
