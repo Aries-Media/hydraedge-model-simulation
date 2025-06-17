@@ -26,7 +26,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Plus, Trash2, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LevelRule } from "@/utils/simulation";
+import { LevelRule, BalanceDistribution } from "@/utils/simulation";
 import Decimal from 'decimal.js';
 import { useState } from "react";
 
@@ -46,6 +46,17 @@ const levelRuleSchema = z.object({
   }, "Must be a positive number or empty"),
 });
 
+const balanceDistributionSchema = z.object({
+  balance: z.string().refine((val) => {
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0;
+  }, "Must be a positive number"),
+  percentage: z.string().refine((val) => {
+    const num = parseFloat(val);
+    return !isNaN(num) && num >= 0 && num <= 100;
+  }, "Must be a number between 0 and 100"),
+});
+
 const formSchema = z.object({
   clientsNumber: z.string().refine((val) => {
     const num = parseInt(val);
@@ -58,6 +69,7 @@ const formSchema = z.object({
   burnWonChallenges: z.boolean(),
   tradeOutputRandom: z.boolean().optional(),
   levels: z.array(levelRuleSchema).optional(),
+  balanceDistribution: z.array(balanceDistributionSchema).optional(),
 });
 
 interface SimulationFormProps {
@@ -69,6 +81,7 @@ interface SimulationFormProps {
     burnWonChallenges: boolean;
     tradeOutputRandom: boolean;
     levels?: LevelRule[];
+    balanceDistribution?: BalanceDistribution[];
   }) => void;
   isLoading?: boolean;
   showSubmitButton?: boolean;
@@ -85,6 +98,7 @@ export function SimulationForm({
 }: SimulationFormProps) {
   const { t } = useLanguage();
   const [isLevelsOpen, setIsLevelsOpen] = useState(false);
+  const [isBalanceDistributionOpen, setIsBalanceDistributionOpen] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -101,12 +115,22 @@ export function SimulationForm({
         { maxBalance: "224000", sl: "8800", tp: "" },
         { maxBalance: "228000", sl: "7000", tp: "" },
       ],
+      balanceDistribution: [
+        { balance: "200000", percentage: "20" },
+        { balance: "100000", percentage: "40" },
+        { balance: "50000", percentage: "40" },
+      ],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields: levelFields, append: appendLevel, remove: removeLevel } = useFieldArray({
     control: form.control,
     name: "levels",
+  });
+
+  const { fields: balanceFields, append: appendBalance, remove: removeBalance } = useFieldArray({
+    control: form.control,
+    name: "balanceDistribution",
   });
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
@@ -116,19 +140,41 @@ export function SimulationForm({
       tp: level.tp && level.tp !== "" ? new Decimal(level.tp) : undefined,
     }));
 
+    const balanceDistribution: BalanceDistribution[] | undefined = values.balanceDistribution?.map(dist => ({
+      balance: parseFloat(dist.balance),
+      percentage: parseFloat(dist.percentage),
+    }));
+
+    // Validate balance distribution percentages sum to 100
+    if (balanceDistribution && balanceDistribution.length > 0) {
+      const totalPercentage = balanceDistribution.reduce((sum, item) => sum + item.percentage, 0);
+      if (Math.abs(totalPercentage - 100) > 0.01) {
+        form.setError("balanceDistribution", {
+          type: "manual",
+          message: `Balance distribution percentages must sum to 100%, current sum is ${totalPercentage}%`
+        });
+        return;
+      }
+    }
+
     onSubmit({
       clientsNumber: hideClientsField ? 1 : parseInt(values.clientsNumber),
       tradesPerClient: parseInt(values.tradesPerClient),
-      initialBalance: 200000, // Fixed default value
+      initialBalance: 200000, // Default value when no distribution is used
       commissionPerTrade: 10, // Fixed default
       burnWonChallenges: values.burnWonChallenges,
       tradeOutputRandom: values.tradeOutputRandom || false,
       levels,
+      balanceDistribution,
     });
   };
 
   const addLevel = () => {
-    append({ maxBalance: "", sl: "", tp: "" });
+    appendLevel({ maxBalance: "", sl: "", tp: "" });
+  };
+
+  const addBalanceDistribution = () => {
+    appendBalance({ balance: "", percentage: "" });
   };
 
   return (
@@ -231,6 +277,99 @@ export function SimulationForm({
                 />
               </div>
 
+              {/* Balance Distribution Configuration Section */}
+              <Collapsible open={isBalanceDistributionOpen} onOpenChange={setIsBalanceDistributionOpen}>
+                <div className="space-y-4">
+                  <CollapsibleTrigger asChild>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="flex w-full items-center justify-between p-4 hover:bg-muted/50"
+                    >
+                      <h3 className="text-lg font-medium">Balance Distribution Configuration</h3>
+                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isBalanceDistributionOpen ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">Define what percentage of clients operate with different initial balances. Percentages must sum to 100%.</p>
+                      <Button type="button" onClick={addBalanceDistribution} variant="outline" size="sm">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Balance Tier
+                      </Button>
+                    </div>
+                    
+                    {balanceFields.length > 0 && (
+                      <div className="border rounded-lg">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Initial Balance ($)</TableHead>
+                              <TableHead>Percentage (%)</TableHead>
+                              <TableHead className="w-[80px]">Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {balanceFields.map((field, index) => (
+                              <TableRow key={field.id}>
+                                <TableCell>
+                                  <FormField
+                                    control={form.control}
+                                    name={`balanceDistribution.${index}.balance`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormControl>
+                                          <Input type="number" step="1000" {...field} className="w-full" placeholder="e.g., 200000" />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <FormField
+                                    control={form.control}
+                                    name={`balanceDistribution.${index}.percentage`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormControl>
+                                          <Input type="number" step="0.1" max="100" {...field} className="w-full" placeholder="e.g., 40" />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Button
+                                    type="button"
+                                    onClick={() => removeBalance(index)}
+                                    variant="outline"
+                                    size="sm"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                    
+                    {balanceFields.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No balance distribution defined. All clients will use the default 200k balance.</p>
+                        <p className="text-sm mt-2">Click "Add Balance Tier" to define custom balance distribution.</p>
+                      </div>
+                    )}
+
+                    <FormMessage />
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
+
               {/* Collapsible Levels Configuration Section */}
               <Collapsible open={isLevelsOpen} onOpenChange={setIsLevelsOpen}>
                 <div className="space-y-4">
@@ -254,7 +393,7 @@ export function SimulationForm({
                       </Button>
                     </div>
                     
-                    {fields.length > 0 && (
+                    {levelFields.length > 0 && (
                       <div className="border rounded-lg">
                         <Table>
                           <TableHeader>
@@ -266,7 +405,7 @@ export function SimulationForm({
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {fields.map((field, index) => (
+                            {levelFields.map((field, index) => (
                               <TableRow key={field.id}>
                                 <TableCell>
                                   <FormField
@@ -319,7 +458,7 @@ export function SimulationForm({
                                 <TableCell>
                                   <Button
                                     type="button"
-                                    onClick={() => remove(index)}
+                                    onClick={() => removeLevel(index)}
                                     variant="outline"
                                     size="sm"
                                   >
@@ -333,7 +472,7 @@ export function SimulationForm({
                       </div>
                     )}
                     
-                    {fields.length === 0 && (
+                    {levelFields.length === 0 && (
                       <div className="text-center py-8 text-muted-foreground">
                         <p>No custom levels defined. Default levels will be used.</p>
                         <p className="text-sm mt-2">Click "Add Level" to define custom trading levels.</p>

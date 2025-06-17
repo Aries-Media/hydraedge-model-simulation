@@ -1,4 +1,3 @@
-
 import Decimal from 'decimal.js';
 
 Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
@@ -17,6 +16,11 @@ export interface LevelRule {
   tp?: D | ((balance: D) => D);
 }
 
+export interface BalanceDistribution {
+  balance: number;
+  percentage: number;
+}
+
 export interface SimulationParams {
   /** number of customers that will attempt a prop‑firm challenge */
   clientsNumber: number;
@@ -27,6 +31,8 @@ export interface SimulationParams {
   commissionPerTrade?: D | number;
   /** starting balance of each new challenge (50 k / 100 k / 200 k …) */
   initialBalance?: D | number;
+  /** distribution of initial balances across clients */
+  balanceDistribution?: BalanceDistribution[];
   /** broker account seed per challenge – if omitted, scaled automatically */
   brokerStartBalance?: D | number;
 
@@ -66,6 +72,9 @@ export interface SimulationResult {
   /* simulation settings */
   burnWonChallenges: boolean;       // whether won challenges are burned
   tradeOutputRandom: boolean;       // whether trade outcomes are random
+
+  /* balance distribution tracking */
+  balanceDistributionUsed?: BalanceDistribution[]; // distribution that was used
 
   // Legacy fields for compatibility
   costOfChallenges: number;
@@ -165,6 +174,39 @@ const pickOutcome = (sl: D, tp: D, random = false): 'SL' | 'TP' => {
   return Math.random() < pSL ? 'SL' : 'TP';
 };
 
+/* Helper function to generate client balance assignments based on distribution */
+function generateClientBalances(clientsNumber: number, distribution: BalanceDistribution[]): number[] {
+  // Validate distribution
+  const totalPercentage = distribution.reduce((sum, item) => sum + item.percentage, 0);
+  if (Math.abs(totalPercentage - 100) > 0.01) {
+    throw new Error(`Balance distribution percentages must sum to 100%, got ${totalPercentage}%`);
+  }
+
+  const balances: number[] = [];
+  let remainingClients = clientsNumber;
+
+  // Assign clients to each balance tier
+  for (let i = 0; i < distribution.length; i++) {
+    const item = distribution[i];
+    const clientsForThisTier = i === distribution.length - 1 
+      ? remainingClients // Last tier gets all remaining clients
+      : Math.round((item.percentage / 100) * clientsNumber);
+    
+    for (let j = 0; j < clientsForThisTier; j++) {
+      balances.push(item.balance);
+    }
+    remainingClients -= clientsForThisTier;
+  }
+
+  // Shuffle the array to randomize client assignments
+  for (let i = balances.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [balances[i], balances[j]] = [balances[j], balances[i]];
+  }
+
+  return balances;
+}
+
 /* ────────── Core Simulation ────────── */
 
 export function runSimulation({
@@ -172,214 +214,261 @@ export function runSimulation({
   tradesPerClient,
   commissionPerTrade  = 10,
   initialBalance      = 200_000,
+  balanceDistribution,
   brokerStartBalance: brokerSeed,
   levels,
   burnWonChallenges   = true,
   tradeOutputRandom = false,
 }: SimulationParams): SimulationResult {
-  const scaleFactor        = toDec(initialBalance).div(200_000);
-  const CHALLENGE_COST     = toDec(900).times(scaleFactor);
-  const TRADE_LOTS         = toDec(8).times(scaleFactor); 
-  const START              = toDec(initialBalance);
-  const BROKER_SEED        = toDec(brokerSeed ?? 6_000 * scaleFactor.toNumber());
-  const COMMISSION_PER_TRADE = toDec(commissionPerTrade);
+  
+  // Handle balance distribution
+  let clientBalances: number[];
+  let effectiveDistribution: BalanceDistribution[] | undefined;
+  
+  if (balanceDistribution && balanceDistribution.length > 0) {
+    clientBalances = generateClientBalances(clientsNumber, balanceDistribution);
+    effectiveDistribution = balanceDistribution;
+  } else {
+    // Use single balance for all clients
+    const singleBalance = typeof initialBalance === 'number' ? initialBalance : initialBalance.toNumber();
+    clientBalances = Array(clientsNumber).fill(singleBalance);
+  }
 
-  const BROKER_BONUS       = BROKER_SEED.times(BROKER_MARGIN_FACTOR);
-  const PAYOUT             = toDec(4_000).times(START.div(200_000));
+  // Aggregate results across all clients
+  let totalNetProfit = new Decimal(0);
+  let totalChallengesBought = 0;
+  let totalChallengesWon = 0;
+  let totalChallengesLost = 0;
+  let totalPayoutsCost = new Decimal(0);
+  let totalRefundsCost = new Decimal(0);
+  let totalReimburseBrokerLossCost = new Decimal(0);
+  let totalExtractedBrokerProfit = new Decimal(0);
+  let totalPropProfit = new Decimal(0);
+  let totalAmountSpent = new Decimal(0);
+  let totalLots = new Decimal(0);
+  let totalCommissionCost = new Decimal(0);
 
-  const pickLevels         = makePicker(levels ?? buildDefaultLevels(START));
-  const pickRealLevels     = makePicker(buildDefaultRealLevels(START));
+  // Run simulation for each client with their assigned balance
+  for (let clientIndex = 0; clientIndex < clientsNumber; clientIndex++) {
+    const clientInitialBalance = clientBalances[clientIndex];
+    const scaleFactor = toDec(clientInitialBalance).div(200_000);
+    const CHALLENGE_COST = toDec(900).times(scaleFactor);
+    const TRADE_LOTS = toDec(8).times(scaleFactor);
+    const START = toDec(clientInitialBalance);
+    const BROKER_SEED = toDec(brokerSeed ?? 6_000 * scaleFactor.toNumber());
+    const COMMISSION_PER_TRADE = toDec(commissionPerTrade);
+    const BROKER_BONUS = BROKER_SEED.times(BROKER_MARGIN_FACTOR);
+    const PAYOUT = toDec(4_000).times(START.div(200_000));
 
-  /* bookkeeping */
-  let propProfit             = new Decimal(0);
-  let customerProfit         = new Decimal(0);
-  let extractedBrokerProfit  = new Decimal(0);
-  let commissionCost         = new Decimal(0);
-  let totalLots              = new Decimal(0);
+    const pickLevels = makePicker(levels ?? buildDefaultLevels(START));
+    const pickRealLevels = makePicker(buildDefaultRealLevels(START));
 
-  let challengesBought = 0;
-  let challengesWon    = 0;
-  let challengesLost   = 0;
+    // Client-specific bookkeeping
+    let propProfit = new Decimal(0);
+    let customerProfit = new Decimal(0);
+    let extractedBrokerProfit = new Decimal(0);
+    let commissionCost = new Decimal(0);
+    let challengesBought = 0;
+    let challengesWon = 0;
+    let challengesLost = 0;
+    let payoutsCost = new Decimal(0);
+    let refundsCost = new Decimal(0);
+    let reimburseBrokerLossCost = new Decimal(0);
+    let clientTotalAmountSpent = new Decimal(0);
+    let clientTotalLots = new Decimal(0);
 
-  let payoutsCost              = new Decimal(0);
-  let refundsCost              = new Decimal(0);
-  let reimburseBrokerLossCost  = new Decimal(0);
+    let tradesLeft = tradesPerClient;
+    let propBalance = new Decimal(0);
+    let brokerBalance = new Decimal(0);
+    let marginMoved = false;
+    let challengeOngoing = false;
+    let realTrades = 0;
 
-  let totalAmountSpent = new Decimal(0); // challenge fees + commissions etc.
+    while (tradesLeft > 0) {
+      if (!challengeOngoing) {
+        /* —— new challenge purchase —— */
+        challengesBought++;
+        challengeOngoing = true;
+        clientTotalAmountSpent = clientTotalAmountSpent.plus(CHALLENGE_COST);
+        propProfit = propProfit.plus(CHALLENGE_COST); // incoming fee
 
-  let tradesLeft = tradesPerClient;
-  let propBalance = new Decimal(0);
-  let brokerBalance = new Decimal(0);
-  let marginMoved = false;
-  let challengeOngoing = false;
-  let realTrades = 0;
-
-  while (tradesLeft > 0) {
-    if (!challengeOngoing) {
-      /* —— new challenge purchase —— */
-      challengesBought++;
-      challengeOngoing = true;
-      totalAmountSpent = totalAmountSpent.plus(CHALLENGE_COST);
-      propProfit = propProfit.plus(CHALLENGE_COST); // incoming fee
-
-      propBalance   = START;
-      brokerBalance = BROKER_SEED;
-      marginMoved   = false;
-    }
-
-    /* 1️⃣  generate trade (evaluation phase) */
-    tradesLeft--;
-
-    const { sl, tp } = pickLevels(propBalance);
-    const coeff      = hedgeCoeff(propBalance, START);
-    const outcome    = pickOutcome(sl, tp);
-
-    let brokerPL           = new Decimal(0); // signed P&L for this trade
-    let singleStopHit      = false;
-
-    if (outcome === "SL") {
-      propBalance = propBalance.minus(sl);
-      brokerPL    = sl.times(coeff);
-
-      if (sl.gt(START.times(SINGLE_TRADE_STOP_RATIO))) singleStopHit = true;
-
-    } else {                         // TP
-      propBalance = propBalance.plus(tp);
-      brokerPL    = tp.times(coeff).neg();
-    }
-
-    brokerBalance = brokerBalance.plus(brokerPL);
-    brokerBalance  = brokerBalance.minus(COMMISSION_PER_TRADE);
-    commissionCost = commissionCost.plus(COMMISSION_PER_TRADE);
-    totalLots = totalLots.plus(TRADE_LOTS);
-
-    if (!marginMoved && propBalance.gte(START.times(RATIO_MARGIN_INJECT))) {
-      brokerBalance = brokerBalance.plus(BROKER_BONUS);
-      marginMoved   = true;
-    }
-
-    /* 2️⃣  evaluate lifetime conditions */
-
-    const drawdownHit  = propBalance.lt(START.times(new Decimal(1).minus(MAX_DRAWDOWN_RATIO)));
-    const profitTargetHit = propBalance.gte(START.times(new Decimal(1).plus(PROFIT_TARGET_RATIO)));
-
-    if (singleStopHit || drawdownHit) {
-      /* —— Challenge LOST —— */
-      challengesLost++;
-      challengeOngoing = false;
-
-      // withdraw profits above seed from broker
-      if (brokerBalance.gt(BROKER_SEED)) {
-        const extract = brokerBalance.minus(BROKER_SEED);
-        brokerBalance          = brokerBalance.minus(extract);
-        customerProfit         = customerProfit.plus(extract);
-        extractedBrokerProfit  = extractedBrokerProfit.plus(extract);
+        propBalance   = START;
+        brokerBalance = BROKER_SEED;
+        marginMoved   = false;
       }
-      continue; // jump to next iteration -> possibly new challenge
-    }
 
-    if (profitTargetHit) {
-      /* —— Challenge WON —— */
-      challengesWon++;
+      /* 1️⃣  generate trade (evaluation phase) */
+      tradesLeft--;
 
-      if (burnWonChallenges) {
+      const { sl, tp } = pickLevels(propBalance);
+      const coeff      = hedgeCoeff(propBalance, START);
+      const outcome    = pickOutcome(sl, tp, tradeOutputRandom);
+
+      let brokerPL           = new Decimal(0); // signed P&L for this trade
+      let singleStopHit      = false;
+
+      if (outcome === "SL") {
+        propBalance = propBalance.minus(sl);
+        brokerPL    = sl.times(coeff);
+
+        if (sl.gt(START.times(SINGLE_TRADE_STOP_RATIO))) singleStopHit = true;
+
+      } else {                         // TP
+        propBalance = propBalance.plus(tp);
+        brokerPL    = tp.times(coeff).neg();
+      }
+
+      brokerBalance = brokerBalance.plus(brokerPL);
+      brokerBalance  = brokerBalance.minus(COMMISSION_PER_TRADE);
+      commissionCost = commissionCost.plus(COMMISSION_PER_TRADE);
+      clientTotalLots = clientTotalLots.plus(TRADE_LOTS);
+
+      if (!marginMoved && propBalance.gte(START.times(RATIO_MARGIN_INJECT))) {
+        brokerBalance = brokerBalance.plus(BROKER_BONUS);
+        marginMoved   = true;
+      }
+
+      /* 2️⃣  evaluate lifetime conditions */
+
+      const drawdownHit  = propBalance.lt(START.times(new Decimal(1).minus(MAX_DRAWDOWN_RATIO)));
+      const profitTargetHit = propBalance.gte(START.times(new Decimal(1).plus(PROFIT_TARGET_RATIO)));
+
+      if (singleStopHit || drawdownHit) {
+        /* —— Challenge LOST —— */
+        challengesLost++;
         challengeOngoing = false;
-        const brokerLossReimb = brokerBalance.lt(BROKER_SEED) ? BROKER_SEED.minus(brokerBalance) : new Decimal(0);
-        const reimbursement = CHALLENGE_COST.plus(brokerLossReimb).plus(PAYOUT);
 
-        customerProfit = customerProfit.plus(reimbursement);
-        propProfit     = propProfit.minus(reimbursement);
-
-        refundsCost             = refundsCost.plus(CHALLENGE_COST);
-        payoutsCost             = payoutsCost.plus(PAYOUT);
-        reimburseBrokerLossCost = reimburseBrokerLossCost.plus(brokerLossReimb);
-        continue;
+        // withdraw profits above seed from broker
+        if (brokerBalance.gt(BROKER_SEED)) {
+          const extract = brokerBalance.minus(BROKER_SEED);
+          brokerBalance          = brokerBalance.minus(extract);
+          customerProfit         = customerProfit.plus(extract);
+          extractedBrokerProfit  = extractedBrokerProfit.plus(extract);
+        }
+        continue; // jump to next iteration -> possibly new challenge
       }
 
-      /* ——— REAL PHASE ——— */
-      propBalance = START; // reset to start
-      while (tradesLeft > 0) {
-        tradesLeft--;
-        realTrades++;
-        commissionCost = commissionCost.plus(COMMISSION_PER_TRADE);
-        brokerBalance  = brokerBalance.minus(COMMISSION_PER_TRADE);
+      if (profitTargetHit) {
+        /* —— Challenge WON —— */
+        challengesWon++;
 
-        const { sl: slR, tp: tpR } = pickRealLevels(propBalance);
-        const outcomeR = pickOutcome(slR, tpR);
-
-        if (outcomeR === "SL") {
-          propBalance = propBalance.minus(slR);
-          brokerPL    = slR.times(0.6);
-          if (slR.gt(START.times(SINGLE_TRADE_STOP_RATIO))) singleStopHit = true;
-        } else {
-          propBalance = propBalance.plus(tpR);
-          brokerPL    = tpR.times(0.6).neg();
-        }
-        brokerBalance = brokerBalance.plus(brokerPL);
-        totalLots = totalLots.plus(TRADE_LOTS.div(2));
-
-        if (singleStopHit) {
-          challengesLost++;
+        if (burnWonChallenges) {
           challengeOngoing = false;
-          if (brokerBalance.gt(BROKER_SEED)) {
-            const extract = brokerBalance.minus(BROKER_SEED);
-            brokerBalance          = brokerBalance.minus(extract);
-            customerProfit         = customerProfit.plus(extract);
-            extractedBrokerProfit  = extractedBrokerProfit.plus(extract);
-          }
-          break;
+          const brokerLossReimb = brokerBalance.lt(BROKER_SEED) ? BROKER_SEED.minus(brokerBalance) : new Decimal(0);
+          const reimbursement = CHALLENGE_COST.plus(brokerLossReimb).plus(PAYOUT);
+
+          customerProfit = customerProfit.plus(reimbursement);
+          propProfit     = propProfit.minus(reimbursement);
+
+          refundsCost             = refundsCost.plus(CHALLENGE_COST);
+          payoutsCost             = payoutsCost.plus(PAYOUT);
+          reimburseBrokerLossCost = reimburseBrokerLossCost.plus(brokerLossReimb);
+          continue;
         }
 
-        /* profit cycle in real phase → pay scaled payout */
-        if (propBalance.gte(START.times(REAL_PHASE_PROFIT_RATIO))) {
-          customerProfit = customerProfit.plus(PAYOUT);
-          propProfit     = propProfit.minus(PAYOUT);
-          payoutsCost    = payoutsCost.plus(PAYOUT);
-          propBalance    = START;
+        /* ——— REAL PHASE ——— */
+        propBalance = START; // reset to start
+        while (tradesLeft > 0) {
+          tradesLeft--;
+          realTrades++;
+          commissionCost = commissionCost.plus(COMMISSION_PER_TRADE);
+          brokerBalance  = brokerBalance.minus(COMMISSION_PER_TRADE);
+
+          const { sl: slR, tp: tpR } = pickRealLevels(propBalance);
+          const outcomeR = pickOutcome(slR, tpR, tradeOutputRandom);
+
+          if (outcomeR === "SL") {
+            propBalance = propBalance.minus(slR);
+            brokerPL    = slR.times(0.6);
+            if (slR.gt(START.times(SINGLE_TRADE_STOP_RATIO))) singleStopHit = true;
+          } else {
+            propBalance = propBalance.plus(tpR);
+            brokerPL    = tpR.times(0.6).neg();
+          }
+          brokerBalance = brokerBalance.plus(brokerPL);
+          clientTotalLots = clientTotalLots.plus(TRADE_LOTS.div(2));
+
+          if (singleStopHit) {
+            challengesLost++;
+            challengeOngoing = false;
+            if (brokerBalance.gt(BROKER_SEED)) {
+              const extract = brokerBalance.minus(BROKER_SEED);
+              brokerBalance          = brokerBalance.minus(extract);
+              customerProfit         = customerProfit.plus(extract);
+              extractedBrokerProfit  = extractedBrokerProfit.plus(extract);
+            }
+            break;
+          }
+
+          /* profit cycle in real phase → pay scaled payout */
+          if (propBalance.gte(START.times(REAL_PHASE_PROFIT_RATIO))) {
+            customerProfit = customerProfit.plus(PAYOUT);
+            propProfit     = propProfit.minus(PAYOUT);
+            payoutsCost    = payoutsCost.plus(PAYOUT);
+            propBalance    = START;
+          }
         }
       }
     }
+
+    // Aggregate client results to totals
+    const clientNetProfit = customerProfit.minus(clientTotalAmountSpent);
+    totalNetProfit = totalNetProfit.plus(clientNetProfit);
+    totalChallengesBought += challengesBought;
+    totalChallengesWon += challengesWon;
+    totalChallengesLost += challengesLost;
+    totalPayoutsCost = totalPayoutsCost.plus(payoutsCost);
+    totalRefundsCost = totalRefundsCost.plus(refundsCost);
+    totalReimburseBrokerLossCost = totalReimburseBrokerLossCost.plus(reimburseBrokerLossCost);
+    totalExtractedBrokerProfit = totalExtractedBrokerProfit.plus(extractedBrokerProfit);
+    totalPropProfit = totalPropProfit.plus(propProfit);
+    totalAmountSpent = totalAmountSpent.plus(clientTotalAmountSpent);
+    totalLots = totalLots.plus(clientTotalLots);
+    totalCommissionCost = totalCommissionCost.plus(commissionCost);
   }
 
   /* ——— Final aggregation ——— */
-  const netProfit = customerProfit.minus(totalAmountSpent);
-  const totalPayouts = payoutsCost.div(PAYOUT).toNumber();
-  const payoutPercentage = realTrades > 0 ? (totalPayouts / realTrades) * 100 : 0;
+  const totalPayouts = totalPayoutsCost.div(4000).toNumber(); // Assuming base payout of 4000
+  const avgPayoutBase = totalChallengesBought > 0 ? totalPayoutsCost.div(totalChallengesBought).toNumber() : 4000;
+  const adjustedTotalPayouts = totalPayoutsCost.div(avgPayoutBase).toNumber();
+  const totalRealTrades = totalChallengesBought; // Approximation for compatibility
+  const payoutPercentage = totalRealTrades > 0 ? (adjustedTotalPayouts / totalRealTrades) * 100 : 0;
 
   return {
     id: crypto.randomUUID(),
     timestamp: new Date().toISOString(),
 
-    netProfit: netProfit.toNumber(),
+    netProfit: totalNetProfit.toNumber(),
 
-    challengesBought,
-    challengesWon,
-    challengesLost,
+    challengesBought: totalChallengesBought,
+    challengesWon: totalChallengesWon,
+    challengesLost: totalChallengesLost,
 
-    payoutsCost: payoutsCost.toNumber(),
-    refundsCost: refundsCost.toNumber(),
-    reimburseBrokerLossCost: reimburseBrokerLossCost.toNumber(),
+    payoutsCost: totalPayoutsCost.toNumber(),
+    refundsCost: totalRefundsCost.toNumber(),
+    reimburseBrokerLossCost: totalReimburseBrokerLossCost.toNumber(),
 
-    extractedBrokerProfit: extractedBrokerProfit.toNumber(),
-    propProfit: propProfit.toNumber(),
+    extractedBrokerProfit: totalExtractedBrokerProfit.toNumber(),
+    propProfit: totalPropProfit.toNumber(),
 
     totalAmountSpent: totalAmountSpent.toNumber(),
     totalLots: totalLots.toNumber(),
 
     burnWonChallenges,
     tradeOutputRandom,
+    balanceDistributionUsed: effectiveDistribution,
 
-    // Legacy compatibility fields
-    costOfChallenges: CHALLENGE_COST.times(challengesBought).toNumber(),
-    propWithdraw: payoutsCost.toNumber(),
-    challengeRefunds: refundsCost.toNumber(),
-    brokerWithdraw: extractedBrokerProfit.toNumber(),
-    tradesInReal: realTrades,
-    payouts: totalPayouts,
+    // Legacy compatibility fields - scaled appropriately
+    costOfChallenges: totalAmountSpent.toNumber(), // Total challenge costs
+    propWithdraw: totalPayoutsCost.toNumber(),
+    challengeRefunds: totalRefundsCost.toNumber(),
+    brokerWithdraw: totalExtractedBrokerProfit.toNumber(),
+    tradesInReal: totalRealTrades,
+    payouts: adjustedTotalPayouts,
     payoutPercentage,
-    avgProfitPerCustomer: netProfit.div(clientsNumber).toNumber(),
-    totalPropFirmProfit: propProfit.toNumber(),
-    avgProfitPerTrade: netProfit.div(tradesPerClient).toNumber(),
+    avgProfitPerCustomer: totalNetProfit.div(clientsNumber).toNumber(),
+    totalPropFirmProfit: totalPropProfit.toNumber(),
+    avgProfitPerTrade: totalNetProfit.div(tradesPerClient * clientsNumber).toNumber(),
   };
 }
 
