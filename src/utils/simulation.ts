@@ -235,6 +235,7 @@ export function runSimulation({
     const singleBalance = typeof initialBalance === 'number' ? initialBalance : initialBalance.toNumber();
     clientBalances = Array(clientsNumber).fill(singleBalance);
   }
+  console.log("Clients Balance Distribution", clientBalances, effectiveDistribution);
 
   // Aggregate results across all clients - properly declare all variables
   let totalChallengesBought = 0;
@@ -441,7 +442,6 @@ export function runSimulation({
   const avgRefundsCost = totalRefundsCost.div(clientsNumber);
   const avgReimburseBrokerLossCost = totalReimburseBrokerLossCost.div(clientsNumber);
   const avgExtractedBrokerProfit = totalExtractedBrokerProfit.div(clientsNumber);
-  const avgPropProfit = totalPropProfit.div(clientsNumber);
   const avgTotalAmountSpent = totalAmountSpent.div(clientsNumber);
   const avgTotalLots = totalLots.div(clientsNumber);
 
@@ -468,7 +468,7 @@ export function runSimulation({
     reimburseBrokerLossCost: avgReimburseBrokerLossCost.toNumber(),
 
     extractedBrokerProfit: avgExtractedBrokerProfit.toNumber(),
-    propProfit: avgPropProfit.toNumber(),
+    propProfit: totalPropProfit.toNumber(),
 
     totalAmountSpent: avgTotalAmountSpent.toNumber(),
     totalLots: avgTotalLots.toNumber(),
