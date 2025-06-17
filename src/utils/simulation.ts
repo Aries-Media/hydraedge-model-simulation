@@ -236,7 +236,7 @@ export function runSimulation({
     clientBalances = Array(clientsNumber).fill(singleBalance);
   }
 
-  // Aggregate results across all clients
+  // Aggregate results across all clients - properly declare all variables
   let totalChallengesBought = 0;
   let totalChallengesWon = 0;
   let totalChallengesLost = 0;
@@ -248,6 +248,7 @@ export function runSimulation({
   let totalAmountSpent = new Decimal(0);
   let totalLots = new Decimal(0);
   let totalCommissionCost = new Decimal(0);
+  let totalNetProfit = new Decimal(0); // Declare this variable properly
 
   // Run simulation for each client with their assigned balance
   for (let clientIndex = 0; clientIndex < clientsNumber; clientIndex++) {
@@ -416,7 +417,7 @@ export function runSimulation({
 
     // Aggregate client results to totals
     const clientNetProfit = customerProfit.minus(clientTotalAmountSpent);
-    const totalNetProfit = totalNetProfit.plus(clientNetProfit);
+    totalNetProfit = totalNetProfit.plus(clientNetProfit);
     totalChallengesBought += challengesBought;
     totalChallengesWon += challengesWon;
     totalChallengesLost += challengesLost;
