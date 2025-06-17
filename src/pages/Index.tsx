@@ -32,6 +32,7 @@ const Index = () => {
   }) => {
     setIsLoading(true);
     try {
+      console.log("Running simulation", values);
       const result = runSimulation(values);
       setResults((prev) => [result, ...prev]);
     } catch (error) {
