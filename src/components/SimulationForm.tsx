@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import * as z from "zod";
@@ -151,6 +152,10 @@ export function SimulationForm({
   const handlePresetSelect = (presetKey: string) => {
     if (presetKey === "default") {
       replaceLevels(PRESET_LEVELS.default);
+    } else if (presetKey === "original") {
+      replaceLevels(PRESET_LEVELS.original);
+    } else if (presetKey === "original_unbalanced") {
+      replaceLevels(PRESET_LEVELS.original_unbalanced);
     }
   };
 
@@ -413,13 +418,9 @@ export function SimulationForm({
                           <SelectTrigger className="w-48">
                             <SelectValue placeholder="Select preset levels" />
                           </SelectTrigger>
-                          <SelectContent className="bg-popover">
+                          <SelectContent className="bg-popover z-50">
                             <SelectItem value="default">Default Levels</SelectItem>
-                          </SelectContent>
-                          <SelectContent className="bg-popover">
                             <SelectItem value="original">Original</SelectItem>
-                          </SelectContent>
-                          <SelectContent className="bg-popover">
                             <SelectItem value="original_unbalanced">Original Unbalanced</SelectItem>
                           </SelectContent>
                         </Select>
