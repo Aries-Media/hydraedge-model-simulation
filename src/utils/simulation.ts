@@ -309,6 +309,9 @@ export function runSimulation({
       const coeff      = hedgeCoeff(propBalance, START);
       const outcome    = pickOutcome(sl, tp, tradeOutputRandom);
 
+      console.log("Trade", tradesPerClient - tradesLeft, "|", "balance:", propBalance, "- SL:", sl, "TP:", tp)
+      console.log("Result:", outcome)
+      
       let brokerPL           = new Decimal(0); // signed P&L for this trade
       let singleStopHit      = false;
 
