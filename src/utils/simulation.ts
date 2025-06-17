@@ -12,7 +12,7 @@ export interface LevelRule {
   sl: D | ((balance: D) => D);               // stop-loss distance
   /**
    * take‑profit distance. When omitted the engine will derive it at run‑time
-   * as (maxBalance – currentBalance), i.e. “close the gap to the tier ceiling”.
+   * as (maxBalance – currentBalance), i.e. "close the gap to the tier ceiling".
    */
   tp?: D | ((balance: D) => D);
 }
@@ -62,6 +62,10 @@ export interface SimulationResult {
   /* convenience aggregates */
   totalAmountSpent: number;         // payoutsCost + refundsCost + reimburseBrokerLossCost + commissionCost
   totalLots: number;                // total lots traded during simulation
+
+  /* simulation settings */
+  burnWonChallenges: boolean;       // whether won challenges are burned
+  tradeOutputRandom: boolean;       // whether trade outcomes are random
 
   // Legacy fields for compatibility
   costOfChallenges: number;
@@ -361,6 +365,9 @@ export function runSimulation({
 
     totalAmountSpent: totalAmountSpent.toNumber(),
     totalLots: totalLots.toNumber(),
+
+    burnWonChallenges,
+    tradeOutputRandom,
 
     // Legacy compatibility fields
     costOfChallenges: CHALLENGE_COST.times(challengesBought).toNumber(),
