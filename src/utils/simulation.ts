@@ -338,7 +338,7 @@ export function runSimulation({
   }
 
   /* ——— Final aggregation ——— */
-  const netProfit = propProfit.minus(payoutsCost).minus(refundsCost).minus(reimburseBrokerLossCost).minus(commissionCost);
+  const netProfit = customerProfit.minus(totalAmountSpent);
   const totalPayouts = payoutsCost.div(PAYOUT).toNumber();
   const payoutPercentage = realTrades > 0 ? (totalPayouts / realTrades) * 100 : 0;
 
