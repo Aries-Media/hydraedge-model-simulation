@@ -67,6 +67,8 @@ export function SimulationResults({
         extractedBrokerProfit: groupResults.reduce((acc, curr) => acc + curr.extractedBrokerProfit, 0) / groupResults.length,
         totalLots: groupResults.reduce((acc, curr) => acc + curr.totalLots, 0) / groupResults.length,
         totalAmountSpent: groupResults.reduce((acc, curr) => acc + curr.totalAmountSpent, 0) / groupResults.length,
+        burnWonChallenges: groupResults[0].burnWonChallenges, // Same for all in group
+        tradeOutputRandom: groupResults[0].tradeOutputRandom, // Same for all in group
         clientCount: groupResults.length,
         isAverage: true
       };
@@ -111,6 +113,8 @@ export function SimulationResults({
                 <TableHead className="text-right min-w-[140px]">Extracted Broker Profit</TableHead>
                 <TableHead className="text-right min-w-[100px]">Total Lots</TableHead>
                 <TableHead className="text-right min-w-[120px]">Total Amount Spent</TableHead>
+                <TableHead className="text-center min-w-[120px]">Burn Won Challenges</TableHead>
+                <TableHead className="text-center min-w-[120px]">Trade Output Random</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -154,6 +158,12 @@ export function SimulationResults({
                   </TableCell>
                   <TableCell className="text-right">
                     ${result.totalAmountSpent.toFixed(0)}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {result.burnWonChallenges ? "Yes" : "No"}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {result.tradeOutputRandom ? "Yes" : "No"}
                   </TableCell>
                 </TableRow>
               ))}
