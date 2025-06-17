@@ -237,7 +237,6 @@ export function runSimulation({
   }
 
   // Aggregate results across all clients
-  let totalNetProfit = new Decimal(0);
   let totalChallengesBought = 0;
   let totalChallengesWon = 0;
   let totalChallengesLost = 0;
@@ -417,7 +416,7 @@ export function runSimulation({
 
     // Aggregate client results to totals
     const clientNetProfit = customerProfit.minus(clientTotalAmountSpent);
-    totalNetProfit = totalNetProfit.plus(clientNetProfit);
+    const totalNetProfit = totalNetProfit.plus(clientNetProfit);
     totalChallengesBought += challengesBought;
     totalChallengesWon += challengesWon;
     totalChallengesLost += challengesLost;
