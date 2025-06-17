@@ -1,4 +1,3 @@
-
 import Decimal from 'decimal.js';
 
 Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
@@ -43,6 +42,11 @@ export interface SimulationParams {
   burnWonChallenges?: boolean;
   /** the trade outcome is picked up randomly 50-50 between SL and TP */
   tradeOutputRandom?: boolean;
+  
+  /** configurable risk parameters */
+  maxDrawdownRatio?: D | number;     // Max Loss percentage (default 7%)
+  singleTradeStopRatio?: D | number; // Daily Loss percentage (default 4%)
+  profitTargetRatio?: D | number;    // Target Profit percentage (default 14%)
 }
 
 export interface SimulationResult {
@@ -221,8 +225,16 @@ export function runSimulation({
   levels,
   burnWonChallenges   = true,
   tradeOutputRandom = false,
+  maxDrawdownRatio = 0.07,
+  singleTradeStopRatio = 0.04,
+  profitTargetRatio = 0.14,
 }: SimulationParams): SimulationResult {
   
+  // Convert the configurable parameters to Decimal
+  const MAX_DRAWDOWN_RATIO = toDec(maxDrawdownRatio);
+  const SINGLE_TRADE_STOP_RATIO = toDec(singleTradeStopRatio);
+  const PROFIT_TARGET_RATIO = toDec(profitTargetRatio);
+
   // Handle balance distribution
   let clientBalances: number[];
   let effectiveDistribution: BalanceDistribution[] | undefined;
