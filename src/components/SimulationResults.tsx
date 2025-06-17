@@ -123,7 +123,7 @@ export function SimulationResults({
                     {result.clientCount} {result.isAverage ? '(avg)' : ''}
                   </TableCell>
                   <TableCell className={`text-right ${result.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {result.netProfit.toFixed(0)}
+                    ${result.netProfit.toFixed(0)}
                   </TableCell>
                   <TableCell className="text-right">
                     {result.isAverage ? result.challengesBought.toFixed(2) : result.challengesBought}
@@ -135,25 +135,25 @@ export function SimulationResults({
                     {result.isAverage ? result.challengesLost.toFixed(2) : result.challengesLost}
                   </TableCell>
                   <TableCell className={`text-right ${result.propProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {result.propProfit.toFixed(0)}
+                    ${result.propProfit.toFixed(0)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {result.payoutsCost.toFixed(0)}
+                    ${result.payoutsCost.toFixed(0)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {result.refundsCost.toFixed(0)}
+                    ${result.refundsCost.toFixed(0)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {result.reimburseBrokerLossCost.toFixed(0)}
+                    ${result.reimburseBrokerLossCost.toFixed(0)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {result.extractedBrokerProfit.toFixed(0)}
+                    ${result.extractedBrokerProfit.toFixed(0)}
                   </TableCell>
                   <TableCell className="text-right">
                     {result.totalLots.toFixed(0)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {result.totalAmountSpent.toFixed(0)}
+                    ${result.totalAmountSpent.toFixed(0)}
                   </TableCell>
                 </TableRow>
               ))}
