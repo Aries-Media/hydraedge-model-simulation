@@ -38,6 +38,8 @@ export interface SimulationParams {
 
   /** use custom level map (otherwise scaled defaults are used) */
   levels?: LevelRule[];                      // custom tier map (Decimal)
+  /** use custom real level map (otherwise scaled defaults are used) */
+  realLevels?: LevelRule[];                      // custom tier map (Decimal)
   /** the challenge is burned and the whole reimbursement emitted */
   burnWonChallenges?: boolean;
   /** the trade outcome is picked up randomly 50-50 between SL and TP */
@@ -224,6 +226,7 @@ export function runSimulation({
   balanceDistribution,
   brokerStartBalance: brokerSeed,
   levels,
+  realLevels,
   burnWonChallenges   = true,
   tradeOutputRandom = false,
   maxLossRatio = 0.07,
