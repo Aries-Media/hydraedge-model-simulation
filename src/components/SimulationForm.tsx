@@ -154,24 +154,24 @@ const PRESET_REAL_LEVELS = {
 		{
 			maxBalance: "200000",
 			sl: "8200",
-			tp: "1000",
+			tp: "2000",
 		},
 		{
 			maxBalance: "223000",
-			sl: "2000",
-			tp: "1000",
+			sl: "6000",
+			tp: "2000",
 		},
 	],
 	default: [
 		{
 			maxBalance: "200000",
 			sl: "8200",
-			tp: "1000",
+			tp: "2000",
 		},
 		{
 			maxBalance: "223000",
-			sl: "2000",
-			tp: "1000",
+			sl: "6000",
+			tp: "2000",
 		},
 	],
 	blank: [],
@@ -290,7 +290,7 @@ export function SimulationForm({
 					percentage: "100",
 				},
 				{
-					balanc5e: "100000",
+					balance: "100000",
 					percentage: "0",
 				},
 				{
