@@ -1,4 +1,5 @@
 import Decimal from "decimal.js";
+import { SimulationTradeHistory, ChallengeLog, TradeLog } from "@/types/tradeHistory";
 
 Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
 // convenience alias
@@ -55,6 +56,7 @@ export interface SimulationResult {
 	id: string;
 	timestamp: string;
 	clientsNumber?: number; // Add this to track how many clients were in this simulation
+	tradeHistory?: SimulationTradeHistory; // Add trade history for single-customer simulations
 
 	/* core profit‑and‑loss numbers (company perspective) */
 	netProfit: number; // final company cash after all trades / refunds / commissions
@@ -306,6 +308,18 @@ export function runSimulation({
 		effectiveDistribution,
 	);
 
+	// Initialize trade history tracking for single customer simulations
+	const shouldTrackHistory = clientsNumber === 1;
+	let tradeHistory: SimulationTradeHistory | undefined;
+	
+	if (shouldTrackHistory) {
+		tradeHistory = {
+			challenges: [],
+			totalTrades: 0,
+			clientInitialBalance: clientBalances[0]
+		};
+	}
+
 	// Aggregate results across all clients - properly declare all variables
 	let totalChallengesBought = 0;
 	let totalChallengesWon = 0;
@@ -357,6 +371,8 @@ export function runSimulation({
 		let marginMoved = false;
 		let challengeOngoing = false;
 		let realTrades = 0;
+		let currentChallenge: ChallengeLog | undefined;
+		let totalTradeNumber = 0;
 
 		while (tradesLeft > 0) {
 			if (!challengeOngoing) {
@@ -370,10 +386,22 @@ export function runSimulation({
 				propBalance = START;
 				brokerBalance = BROKER_SEED;
 				marginMoved = false;
+
+				// Initialize challenge log for single customer
+				if (shouldTrackHistory && tradeHistory) {
+					currentChallenge = {
+						challengeNumber: challengesBought,
+						startBalance: START.toNumber(),
+						brokerStartBalance: BROKER_SEED.toNumber(),
+						outcome: 'ongoing',
+						trades: []
+					};
+				}
 			}
 
 			/* 1️⃣  generate trade (evaluation phase) */
 			tradesLeft--;
+			totalTradeNumber++;
 
 			const { sl, tp } = pickLevels(propBalance);
 			const coeff = hedgeCoeff(propBalance, START);
@@ -384,6 +412,8 @@ export function runSimulation({
 
 			let brokerPL = new Decimal(0); // signed P&L for this trade
 			let singleStopHit = false;
+			const balanceBefore = propBalance;
+			const brokerBalanceBefore = brokerBalance;
 
 			if (outcome === "SL") {
 				propBalance = propBalance.minus(sl);
@@ -401,9 +431,31 @@ export function runSimulation({
 			commissionCost = commissionCost.plus(COMMISSION_PER_TRADE);
 			clientTotalLots = clientTotalLots.plus(TRADE_LOTS);
 
-			if (!marginMoved && propBalance.gte(START.times(RATIO_MARGIN_INJECT))) {
+			const marginMovedThisTrade = !marginMoved && propBalance.gte(START.times(RATIO_MARGIN_INJECT));
+			if (marginMovedThisTrade) {
 				brokerBalance = brokerBalance.plus(BROKER_BONUS);
 				marginMoved = true;
+			}
+
+			// Log trade for single customer
+			if (shouldTrackHistory && currentChallenge) {
+				const tradeLog: TradeLog = {
+					tradeNumber: totalTradeNumber,
+					phase: 'evaluation',
+					balanceBefore: balanceBefore.toNumber(),
+					balanceAfter: propBalance.toNumber(),
+					sl: sl.toNumber(),
+					tp: tp.toNumber(),
+					outcome,
+					brokerPL: brokerPL.toNumber(),
+					brokerBalanceBefore: brokerBalanceBefore.toNumber(),
+					brokerBalanceAfter: brokerBalance.toNumber(),
+					commission: COMMISSION_PER_TRADE.toNumber(),
+					lots: TRADE_LOTS.toNumber(),
+					singleStopHit,
+					marginMoved: marginMovedThisTrade
+				};
+				currentChallenge.trades.push(tradeLog);
 			}
 
 			/* 2️⃣  evaluate lifetime conditions */
@@ -427,6 +479,18 @@ export function runSimulation({
 					customerProfit = customerProfit.plus(extract);
 					extractedBrokerProfit = extractedBrokerProfit.plus(extract);
 				}
+
+				// Complete challenge log
+				if (shouldTrackHistory && currentChallenge) {
+					currentChallenge.outcome = 'lost';
+					currentChallenge.endReason = singleStopHit ? 'single_stop' : 'max_drawdown';
+					currentChallenge.finalBalance = propBalance.toNumber();
+					currentChallenge.finalBrokerBalance = brokerBalance.toNumber();
+					currentChallenge.extractedBrokerProfit = brokerBalance.gt(BROKER_SEED) ? brokerBalance.minus(BROKER_SEED).toNumber() : 0;
+					tradeHistory!.challenges.push(currentChallenge);
+					currentChallenge = undefined;
+				}
+
 				continue; // jump to next iteration -> possibly new challenge
 			}
 
@@ -449,6 +513,20 @@ export function runSimulation({
 					payoutsCost = payoutsCost.plus(PAYOUT);
 					reimburseBrokerLossCost =
 						reimburseBrokerLossCost.plus(brokerLossReimb);
+
+					// Complete challenge log
+					if (shouldTrackHistory && currentChallenge) {
+						currentChallenge.outcome = 'won';
+						currentChallenge.endReason = 'profit_target';
+						currentChallenge.finalBalance = propBalance.toNumber();
+						currentChallenge.finalBrokerBalance = brokerBalance.toNumber();
+						currentChallenge.payout = PAYOUT.toNumber();
+						currentChallenge.refund = CHALLENGE_COST.toNumber();
+						currentChallenge.brokerReimbursement = brokerLossReimb.toNumber();
+						tradeHistory!.challenges.push(currentChallenge);
+						currentChallenge = undefined;
+					}
+
 					continue;
 				}
 
@@ -456,6 +534,7 @@ export function runSimulation({
 				propBalance = START; // reset to start
 				while (tradesLeft > 0) {
 					tradesLeft--;
+					totalTradeNumber++;
 					realTrades++;
 					commissionCost = commissionCost.plus(COMMISSION_PER_TRADE);
 					brokerBalance = brokerBalance.minus(COMMISSION_PER_TRADE);
@@ -465,6 +544,9 @@ export function runSimulation({
 
           console.log("## REAL Trade", tradesPerClient - tradesLeft, "|", "balance:", propBalance.toNumber(), "- SL:", slR.toNumber(), "TP:", tpR.toNumber())
           console.log("Result:", outcomeR, "\n")
+
+					const balanceBeforeReal = propBalance;
+					const brokerBalanceBeforeReal = brokerBalance;
 
 					if (outcomeR === "SL") {
 						propBalance = propBalance.minus(slR);
@@ -478,6 +560,26 @@ export function runSimulation({
 					brokerBalance = brokerBalance.plus(brokerPL);
 					clientTotalLots = clientTotalLots.plus(TRADE_LOTS.div(2));
 
+					// Log real phase trade
+					if (shouldTrackHistory && currentChallenge) {
+						const tradeLog: TradeLog = {
+							tradeNumber: totalTradeNumber,
+							phase: 'real',
+							balanceBefore: balanceBeforeReal.toNumber(),
+							balanceAfter: propBalance.toNumber(),
+							sl: slR.toNumber(),
+							tp: tpR.toNumber(),
+							outcome: outcomeR,
+							brokerPL: brokerPL.toNumber(),
+							brokerBalanceBefore: brokerBalanceBeforeReal.toNumber(),
+							brokerBalanceAfter: brokerBalance.toNumber(),
+							commission: COMMISSION_PER_TRADE.toNumber(),
+							lots: TRADE_LOTS.div(2).toNumber(),
+							singleStopHit
+						};
+						currentChallenge.trades.push(tradeLog);
+					}
+
 					if (singleStopHit) {
 						challengesLost++;
 						challengeOngoing = false;
@@ -487,6 +589,18 @@ export function runSimulation({
 							customerProfit = customerProfit.plus(extract);
 							extractedBrokerProfit = extractedBrokerProfit.plus(extract);
 						}
+
+						// Complete challenge log
+						if (shouldTrackHistory && currentChallenge) {
+							currentChallenge.outcome = 'lost';
+							currentChallenge.endReason = 'single_stop';
+							currentChallenge.finalBalance = propBalance.toNumber();
+							currentChallenge.finalBrokerBalance = brokerBalance.toNumber();
+							currentChallenge.extractedBrokerProfit = brokerBalance.gt(BROKER_SEED) ? brokerBalance.minus(BROKER_SEED).toNumber() : 0;
+							tradeHistory!.challenges.push(currentChallenge);
+							currentChallenge = undefined;
+						}
+
 						break;
 					}
 
@@ -499,6 +613,19 @@ export function runSimulation({
 					}
 				}
 			}
+		}
+
+		// Handle ongoing challenge at end of trades
+		if (shouldTrackHistory && currentChallenge) {
+			currentChallenge.endReason = 'trades_exhausted';
+			currentChallenge.finalBalance = propBalance.toNumber();
+			currentChallenge.finalBrokerBalance = brokerBalance.toNumber();
+			tradeHistory!.challenges.push(currentChallenge);
+		}
+
+		// Set total trades in history
+		if (shouldTrackHistory && tradeHistory) {
+			tradeHistory.totalTrades = totalTradeNumber;
 		}
 
 		// Aggregate client results to totals
@@ -551,6 +678,7 @@ export function runSimulation({
 		id: crypto.randomUUID(),
 		timestamp: new Date().toISOString(),
 		clientsNumber, // Include the number of clients in this simulation
+		tradeHistory, // Include trade history for single customer simulations
 
 		// Return averages per client for this simulation run
 		netProfit: avgNetProfit.toNumber(),

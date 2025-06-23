@@ -15,18 +15,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Eye } from "lucide-react";
 import { SimulationResult } from "@/utils/simulation";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CustomerResultsProps {
   results: SimulationResult[];
   onClearResults: () => void;
+  onViewTradeHistory?: (result: SimulationResult) => void;
 }
 
 export function CustomerResults({
   results,
   onClearResults,
+  onViewTradeHistory,
 }: CustomerResultsProps) {
   const { t } = useLanguage();
   
@@ -75,6 +77,7 @@ export function CustomerResults({
                 <TableHead className="text-right">{t("tradesInRealColumn")}</TableHead>
                 <TableHead className="text-right">{t("payoutsColumn")}</TableHead>
                 <TableHead className="text-right">{t("payoutPercentageColumn")}</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -102,6 +105,17 @@ export function CustomerResults({
                   <TableCell className="text-right">
                     {result.payoutPercentage.toFixed(2)}%
                   </TableCell>
+                  <TableCell className="text-center">
+                    {result.tradeHistory && onViewTradeHistory && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onViewTradeHistory(result)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
               <TableRow className="font-medium bg-muted/50">
@@ -127,6 +141,7 @@ export function CustomerResults({
                 <TableCell className="text-right">
                   {averages.payoutPercentage.toFixed(2)}%
                 </TableCell>
+                <TableCell className="text-center">-</TableCell>
               </TableRow>
             </TableBody>
           </Table>
