@@ -144,7 +144,7 @@ export function TradeHistoryModal({
                             <TableCell className="font-medium">#{trade.tradeNumber}</TableCell>
                             <TableCell>
                               <Badge variant={trade.phase === 'evaluation' ? 'secondary' : 'outline'}>
-                                {trade.phase === 'evaluation' ? 'EVAL' : 'REAL'}
+                                {trade.phase === 'evaluation' ? 'DEMO' : 'REAL'}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right">{formatCurrency(trade.balanceBefore)}</TableCell>

@@ -89,7 +89,7 @@ const PRESET_LEVELS = {
 		},
 		{
 			maxBalance: "212000",
-			sl: "10800",
+			sl: "11000",
 			tp: "5000",
 		},
 		{
@@ -99,7 +99,7 @@ const PRESET_LEVELS = {
 		},
 		{
 			maxBalance: "222000",
-			sl: "11300",
+			sl: "11500",
 			tp: "4000",
 		},
 		{
