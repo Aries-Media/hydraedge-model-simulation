@@ -35,7 +35,7 @@ export function CustomerView() {
         initialBalance: 100000, // Default
         commissionPerTrade: 10, // Default
         burnWonChallenges: false, // Default
-        tradeOutputRandom: true, // As requested
+        tradeOutcomeStrategy: 'fifty_fifty' as const, // As requested
         maxLossRatio: 0.08, // Default
         dailyLossRatio: 0.04, // Default
         targetProfitRatio: 0.08, // Default

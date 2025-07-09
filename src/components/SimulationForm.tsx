@@ -217,7 +217,7 @@ const formSchema = z.object({
 		return !Number.isNaN(num) && num >= 1 && num <= 1000;
 	}, "Must be a number between 1 and 1000"),
 	burnWonChallenges: z.boolean(),
-	tradeOutputRandom: z.boolean().optional(),
+	tradeOutcomeStrategy: z.enum(['fifty_fifty', 'geometric_distance', 'logarithmic_distance', 'average']).optional(),
 	maxLossRatio: z.string().refine((val) => {
 		const num = Number.parseFloat(val);
 		return !Number.isNaN(num) && num > 0 && num <= 100;
@@ -242,7 +242,7 @@ interface SimulationFormProps {
 		initialBalance: number;
 		commissionPerTrade: number;
 		burnWonChallenges: boolean;
-		tradeOutputRandom: boolean;
+		tradeOutcomeStrategy: 'fifty_fifty' | 'geometric_distance' | 'logarithmic_distance' | 'average';
 		maxLossRatio: number;
 		dailyLossRatio: number;
 		targetProfitRatio: number;
@@ -278,7 +278,7 @@ export function SimulationForm({
 			clientsNumber: "500",
 			tradesPerClient: "250",
 			burnWonChallenges: false,
-			tradeOutputRandom: false,
+			tradeOutcomeStrategy: 'geometric_distance',
 			maxLossRatio: "7",
 			dailyLossRatio: "4",
 			targetProfitRatio: "14",
@@ -391,7 +391,7 @@ export function SimulationForm({
 			initialBalance: 200000, // Default value when no distribution is used
 			commissionPerTrade: 10, // Fixed default
 			burnWonChallenges: values.burnWonChallenges,
-			tradeOutputRandom: values.tradeOutputRandom || false,
+			tradeOutcomeStrategy: values.tradeOutcomeStrategy || 'geometric_distance',
 			maxLossRatio: Number.parseFloat(values.maxLossRatio) / 100,
 			dailyLossRatio: Number.parseFloat(values.dailyLossRatio) / 100,
 			targetProfitRatio: Number.parseFloat(values.targetProfitRatio) / 100,
@@ -528,24 +528,25 @@ export function SimulationForm({
 
 											<FormField
 												control={form.control}
-												name="tradeOutputRandom"
+												name="tradeOutcomeStrategy"
 												render={({ field }) => (
 													<FormItem className="flex-1 min-w-[200px]">
-														<FormLabel>Trade Outcome Random</FormLabel>
+														<FormLabel>Trade Outcome Strategy</FormLabel>
 														<FormControl>
-															<div className="flex items-center space-x-2">
-																<Checkbox
-																	checked={field.value || false}
-																	onCheckedChange={field.onChange}
-																/>
-																<span className="text-sm">
-																	{field.value ? "Enabled" : "Disabled"}
-																</span>
-															</div>
+															<Select value={field.value || 'geometric_distance'} onValueChange={field.onChange}>
+																<SelectTrigger>
+																	<SelectValue placeholder="Select strategy" />
+																</SelectTrigger>
+																<SelectContent>
+																	<SelectItem value="fifty_fifty">Fifty Fifty</SelectItem>
+																	<SelectItem value="geometric_distance">Geometric Distance</SelectItem>
+																	<SelectItem value="logarithmic_distance">Logarithmic Distance</SelectItem>
+																	<SelectItem value="average">Average</SelectItem>
+																</SelectContent>
+															</Select>
 														</FormControl>
 														<FormDescription>
-															Enable for random 50-50 trade outcomes instead of
-															probability-based results
+															Strategy used to calculate trade outcomes
 														</FormDescription>
 														<FormMessage />
 													</FormItem>

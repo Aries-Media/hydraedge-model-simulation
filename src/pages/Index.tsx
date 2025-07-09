@@ -24,7 +24,7 @@ const Index = () => {
 		initialBalance: number;
 		commissionPerTrade: number;
 		burnWonChallenges: boolean;
-		tradeOutputRandom: boolean;
+		tradeOutcomeStrategy: 'fifty_fifty' | 'geometric_distance' | 'logarithmic_distance' | 'average';
 		levels?: any[];
 	}) => {
 		setIsLoading(true);
