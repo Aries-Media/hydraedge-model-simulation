@@ -43,8 +43,8 @@ export interface SimulationParams {
 	realLevels?: LevelRule[]; // custom tier map (Decimal)
 	/** the challenge is burned and the whole reimbursement emitted */
 	burnWonChallenges?: boolean;
-	/** the trade outcome is picked up randomly 50-50 between SL and TP */
-	tradeOutputRandom?: boolean;
+	/** the strategy used to calculate trade outcomes */
+	tradeOutcomeStrategy?: 'fifty_fifty' | 'geometric_distance' | 'logarithmic_distance' | 'average';
 
 	/** Risk parameters to override defaults */
 	maxLossRatio?: number;
@@ -81,7 +81,7 @@ export interface SimulationResult {
 
 	/* simulation settings */
 	burnWonChallenges: boolean; // whether won challenges are burned
-	tradeOutputRandom: boolean; // whether trade outcomes are random
+	tradeOutcomeStrategy: 'fifty_fifty' | 'geometric_distance' | 'logarithmic_distance' | 'average'; // strategy used for trade outcomes
 
 	/* balance distribution tracking */
 	balanceDistributionUsed?: BalanceDistribution[]; // distribution that was used
@@ -209,12 +209,39 @@ const hedgeCoeff = (bal: D, start: D): D => {
 	return new Decimal(0.6);
 };
 
-/** Returns "SL" or "TP" with probability driven by SL / TP distances. */
-const pickOutcome = (sl: D, tp: D, random = false): "SL" | "TP" => {
-	if (random) return Math.round(Math.random()) ? "SL" : "TP";
-
-	const pSL = tp.div(sl.plus(tp)).toNumber();
-	return Math.random() < pSL ? "SL" : "TP";
+/** Returns "SL" or "TP" based on the specified strategy. */
+const pickOutcome = (sl: D, tp: D, strategy: 'fifty_fifty' | 'geometric_distance' | 'logarithmic_distance' | 'average' = 'geometric_distance'): "SL" | "TP" => {
+	switch (strategy) {
+		case 'fifty_fifty':
+			return Math.round(Math.random()) ? "SL" : "TP";
+		
+		case 'geometric_distance': {
+			const pSL = tp.div(sl.plus(tp)).toNumber();
+			return Math.random() < pSL ? "SL" : "TP";
+		}
+		
+		case 'logarithmic_distance': {
+			const slLog = Math.log(sl.toNumber() + 1);
+			const tpLog = Math.log(tp.toNumber() + 1);
+			const pSL = tpLog / (slLog + tpLog);
+			return Math.random() < pSL ? "SL" : "TP";
+		}
+		
+		case 'average': {
+			// Fifty-fifty probability
+			const pSL_50 = 0.5;
+			
+			// Geometric distance probability
+			const pSL_geo = tp.div(sl.plus(tp)).toNumber();
+			
+			// Average of both
+			const pSL_avg = (pSL_50 + pSL_geo) / 2;
+			return Math.random() < pSL_avg ? "SL" : "TP";
+		}
+		
+		default:
+			return Math.round(Math.random()) ? "SL" : "TP";
+	}
 };
 
 /* Helper function to generate client balance assignments based on distribution */
@@ -271,7 +298,7 @@ export function runSimulation({
 	levels,
 	realLevels,
 	burnWonChallenges = true,
-	tradeOutputRandom = false,
+	tradeOutcomeStrategy = 'geometric_distance',
 	maxLossRatio = 0.07,
 	dailyLossRatio = 0.04,
 	targetProfitRatio = 0.14,
@@ -405,7 +432,7 @@ export function runSimulation({
 
 			const { sl, tp } = pickLevels(propBalance);
 			const coeff = hedgeCoeff(propBalance, START);
-			const outcome = pickOutcome(sl, tp, tradeOutputRandom);
+			const outcome = pickOutcome(sl, tp, tradeOutcomeStrategy);
 
       console.log("Trade", tradesPerClient - tradesLeft, "|", "balance:", propBalance.toNumber(), "- SL:", sl.toNumber(), "TP:", tp.toNumber())
       console.log("Result:", outcome, "\n")
@@ -540,7 +567,7 @@ export function runSimulation({
 					brokerBalance = brokerBalance.minus(COMMISSION_PER_TRADE);
 
 					const { sl: slR, tp: tpR } = pickRealLevels(propBalance);
-					const outcomeR = pickOutcome(slR, tpR, tradeOutputRandom);
+					const outcomeR = pickOutcome(slR, tpR, tradeOutcomeStrategy);
 
           console.log("## REAL Trade", tradesPerClient - tradesLeft, "|", "balance:", propBalance.toNumber(), "- SL:", slR.toNumber(), "TP:", tpR.toNumber())
           console.log("Result:", outcomeR, "\n")
@@ -698,7 +725,7 @@ export function runSimulation({
 		totalLots: avgTotalLots.toNumber(),
 
 		burnWonChallenges,
-		tradeOutputRandom,
+		tradeOutcomeStrategy,
 		balanceDistributionUsed: effectiveDistribution,
 
 		// Legacy compatibility fields - scaled appropriately

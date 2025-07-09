@@ -123,9 +123,9 @@ export function SimulationResults({
                       <TableCell className="text-center">
                         {result.burnWonChallenges ? "Yes" : "No"}
                       </TableCell>
-                      <TableCell className="text-center">
-                        {result.tradeOutputRandom ? "Yes" : "No"}
-                      </TableCell>
+                       <TableCell className="text-center">
+                         {result.tradeOutcomeStrategy || 'geometric_distance'}
+                       </TableCell>
                       <TableCell className="text-center">
                         {hasTradeHistory && (
                           <Button
