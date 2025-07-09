@@ -153,24 +153,24 @@ const PRESET_REAL_LEVELS = {
 	original: [
 		{
 			maxBalance: "200000",
-			sl: "8200",
+			sl: "7000",
 			tp: "2000",
 		},
 		{
 			maxBalance: "223000",
-			sl: "6000",
+			sl: "7000",
 			tp: "2000",
 		},
 	],
 	default: [
 		{
 			maxBalance: "200000",
-			sl: "8200",
+			sl: "7000",
 			tp: "2000",
 		},
 		{
 			maxBalance: "223000",
-			sl: "6000",
+			sl: "7000",
 			tp: "2000",
 		},
 	],
