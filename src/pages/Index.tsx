@@ -24,8 +24,13 @@ const Index = () => {
 		initialBalance: number;
 		commissionPerTrade: number;
 		burnWonChallenges: boolean;
-		tradeOutcomeStrategy: 'fifty_fifty' | 'geometric_distance' | 'logarithmic_distance' | 'average';
+		tradeOutcomeStrategy: 'fifty_fifty' | 'geometric_distance' | 'logarithmic_distance' | 'average' | 'burn_after_sl';
+		maxLossRatio: number;
+		dailyLossRatio: number;
+		targetProfitRatio: number;
 		levels?: any[];
+		realLevels?: any[];
+		balanceDistribution?: any[];
 	}) => {
 		setIsLoading(true);
 		try {

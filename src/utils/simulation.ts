@@ -44,7 +44,7 @@ export interface SimulationParams {
 	/** the challenge is burned and the whole reimbursement emitted */
 	burnWonChallenges?: boolean;
 	/** the strategy used to calculate trade outcomes */
-	tradeOutcomeStrategy?: 'fifty_fifty' | 'geometric_distance' | 'logarithmic_distance' | 'average';
+	tradeOutcomeStrategy?: 'fifty_fifty' | 'geometric_distance' | 'logarithmic_distance' | 'average' | 'burn_after_sl';
 
 	/** Risk parameters to override defaults */
 	maxLossRatio?: number;
@@ -81,7 +81,7 @@ export interface SimulationResult {
 
 	/* simulation settings */
 	burnWonChallenges: boolean; // whether won challenges are burned
-	tradeOutcomeStrategy: 'fifty_fifty' | 'geometric_distance' | 'logarithmic_distance' | 'average'; // strategy used for trade outcomes
+	tradeOutcomeStrategy: 'fifty_fifty' | 'geometric_distance' | 'logarithmic_distance' | 'average' | 'burn_after_sl'; // strategy used for trade outcomes
 
 	/* balance distribution tracking */
 	balanceDistributionUsed?: BalanceDistribution[]; // distribution that was used
@@ -210,7 +210,7 @@ const hedgeCoeff = (bal: D, start: D): D => {
 };
 
 /** Returns "SL" or "TP" based on the specified strategy. */
-const pickOutcome = (sl: D, tp: D, strategy: 'fifty_fifty' | 'geometric_distance' | 'logarithmic_distance' | 'average' = 'geometric_distance'): "SL" | "TP" => {
+const pickOutcome = (sl: D, tp: D, strategy: 'fifty_fifty' | 'geometric_distance' | 'logarithmic_distance' | 'average' | 'burn_after_sl' = 'geometric_distance'): "SL" | "TP" => {
 	switch (strategy) {
 		case 'fifty_fifty':
 			return Math.round(Math.random()) ? "SL" : "TP";
@@ -237,6 +237,12 @@ const pickOutcome = (sl: D, tp: D, strategy: 'fifty_fifty' | 'geometric_distance
 			// Average of both
 			const pSL_avg = (pSL_50 + pSL_geo) / 2;
 			return Math.random() < pSL_avg ? "SL" : "TP";
+		}
+		
+		case 'burn_after_sl': {
+			// Use geometric distance logic for outcome determination
+			const pSL = tp.div(sl.plus(tp)).toNumber();
+			return Math.random() < pSL ? "SL" : "TP";
 		}
 		
 		default:
@@ -284,6 +290,13 @@ function generateClientBalances(
 	}
 
 	return balances;
+}
+
+/** Calculate SL target that would burn the challenge (exceed max drawdown) */
+function calculateBurnSL(currentBalance: D, startBalance: D, maxLossRatio: D): D {
+	const maxDrawdownThreshold = startBalance.times(new Decimal(1).minus(maxLossRatio));
+	const burnSL = currentBalance.minus(maxDrawdownThreshold).plus(100); // Add small buffer
+	return burnSL.gt(0) ? burnSL : currentBalance.times(0.5); // Fallback to 50% of current balance
 }
 
 /* ────────── Core Simulation ────────── */
@@ -400,6 +413,7 @@ export function runSimulation({
 		let realTrades = 0;
 		let currentChallenge: ChallengeLog | undefined;
 		let totalTradeNumber = 0;
+		let previousTradeOutcome: "SL" | "TP" | null = null;
 
 		while (tradesLeft > 0) {
 			if (!challengeOngoing) {
@@ -413,6 +427,7 @@ export function runSimulation({
 				propBalance = START;
 				brokerBalance = BROKER_SEED;
 				marginMoved = false;
+				previousTradeOutcome = null; // Reset for new challenge
 
 				// Initialize challenge log for single customer
 				if (shouldTrackHistory && tradeHistory) {
@@ -430,7 +445,13 @@ export function runSimulation({
 			tradesLeft--;
 			totalTradeNumber++;
 
-			const { sl, tp } = pickLevels(propBalance);
+			let { sl, tp } = pickLevels(propBalance);
+			
+			// Override SL for burn_after_sl strategy when previous trade was SL
+			if (tradeOutcomeStrategy === 'burn_after_sl' && previousTradeOutcome === 'SL') {
+				sl = calculateBurnSL(propBalance, START, MAX_DRAWDOWN_RATIO);
+			}
+			
 			const coeff = hedgeCoeff(propBalance, START);
 			const outcome = pickOutcome(sl, tp, tradeOutcomeStrategy);
 
@@ -457,6 +478,9 @@ export function runSimulation({
 			brokerBalance = brokerBalance.minus(COMMISSION_PER_TRADE);
 			commissionCost = commissionCost.plus(COMMISSION_PER_TRADE);
 			clientTotalLots = clientTotalLots.plus(TRADE_LOTS);
+			
+			// Track previous trade outcome for burn_after_sl strategy
+			previousTradeOutcome = outcome;
 
 			const marginMovedThisTrade = !marginMoved && propBalance.gte(START.times(RATIO_MARGIN_INJECT));
 			if (marginMovedThisTrade) {
@@ -559,6 +583,7 @@ export function runSimulation({
 
 				/* ——— REAL PHASE ——— */
 				propBalance = START; // reset to start
+				previousTradeOutcome = null; // Reset for real phase
 				while (tradesLeft > 0) {
 					tradesLeft--;
 					totalTradeNumber++;
@@ -566,7 +591,13 @@ export function runSimulation({
 					commissionCost = commissionCost.plus(COMMISSION_PER_TRADE);
 					brokerBalance = brokerBalance.minus(COMMISSION_PER_TRADE);
 
-					const { sl: slR, tp: tpR } = pickRealLevels(propBalance);
+					let { sl: slR, tp: tpR } = pickRealLevels(propBalance);
+					
+					// Override SL for burn_after_sl strategy when previous trade was SL (real phase)
+					if (tradeOutcomeStrategy === 'burn_after_sl' && previousTradeOutcome === 'SL') {
+						slR = calculateBurnSL(propBalance, START, SINGLE_TRADE_STOP_RATIO);
+					}
+					
 					const outcomeR = pickOutcome(slR, tpR, tradeOutcomeStrategy);
 
           console.log("## REAL Trade", tradesPerClient - tradesLeft, "|", "balance:", propBalance.toNumber(), "- SL:", slR.toNumber(), "TP:", tpR.toNumber())
@@ -586,6 +617,9 @@ export function runSimulation({
 					}
 					brokerBalance = brokerBalance.plus(brokerPL);
 					clientTotalLots = clientTotalLots.plus(TRADE_LOTS.div(2));
+					
+					// Track previous trade outcome for burn_after_sl strategy (real phase)
+					previousTradeOutcome = outcomeR;
 
 					// Log real phase trade
 					if (shouldTrackHistory && currentChallenge) {

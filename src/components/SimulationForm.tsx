@@ -217,7 +217,7 @@ const formSchema = z.object({
 		return !Number.isNaN(num) && num >= 1 && num <= 1000;
 	}, "Must be a number between 1 and 1000"),
 	burnWonChallenges: z.boolean(),
-	tradeOutcomeStrategy: z.enum(['fifty_fifty', 'geometric_distance', 'logarithmic_distance', 'average']).optional(),
+	tradeOutcomeStrategy: z.enum(['fifty_fifty', 'geometric_distance', 'logarithmic_distance', 'average', 'burn_after_sl']).optional(),
 	maxLossRatio: z.string().refine((val) => {
 		const num = Number.parseFloat(val);
 		return !Number.isNaN(num) && num > 0 && num <= 100;
@@ -242,7 +242,7 @@ interface SimulationFormProps {
 		initialBalance: number;
 		commissionPerTrade: number;
 		burnWonChallenges: boolean;
-		tradeOutcomeStrategy: 'fifty_fifty' | 'geometric_distance' | 'logarithmic_distance' | 'average';
+		tradeOutcomeStrategy: 'fifty_fifty' | 'geometric_distance' | 'logarithmic_distance' | 'average' | 'burn_after_sl';
 		maxLossRatio: number;
 		dailyLossRatio: number;
 		targetProfitRatio: number;
@@ -539,9 +539,10 @@ export function SimulationForm({
 																</SelectTrigger>
 																<SelectContent>
 																	<SelectItem value="fifty_fifty">Fifty Fifty</SelectItem>
-																	<SelectItem value="geometric_distance">Geometric Distance</SelectItem>
-																	<SelectItem value="logarithmic_distance">Logarithmic Distance</SelectItem>
-																	<SelectItem value="average">Average</SelectItem>
+							<SelectItem value="geometric_distance">Geometric Distance</SelectItem>
+							<SelectItem value="logarithmic_distance">Logarithmic Distance</SelectItem>
+							<SelectItem value="average">Average</SelectItem>
+							<SelectItem value="burn_after_sl">Burn After SL</SelectItem>
 																</SelectContent>
 															</Select>
 														</FormControl>
