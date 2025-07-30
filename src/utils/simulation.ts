@@ -576,27 +576,38 @@ export function runSimulation({
 
 				if (burnWonChallenges) {
 					challengeOngoing = false;
+
+          let brokerLossReimb = new Decimal(0);
+          if (strategy == "new4") {
+            // Apply new4 preset exception: if we have 4+ sequential TPs, this challenge is not paid
+            if (!shouldIncrementChallengesBought) {
+              // console.log(`\n🚫 new4 preset: Challenge not paid due to ${sequentialTPs} sequential TPs`);
+              // Don't count this as a bought challenge, but still process the win
+              challengesBought--; // Decrement the already incremented count from challenge start
+            }
+
+            const reimbursement = BROKER_SEED.plus(BROKER_SEED.div(2));
+            customerProfit = customerProfit.plus(reimbursement);
+            propProfit = propProfit.minus(reimbursement);
+
+            refundsCost = refundsCost.plus(reimbursement);
+          } else {
+            brokerLossReimb = brokerBalance.lt(BROKER_SEED)
+              ? BROKER_SEED.minus(brokerBalance)
+              : new Decimal(0);
+            const reimbursement =
+            CHALLENGE_COST.plus(brokerLossReimb).plus(PAYOUT);
+
+            customerProfit = customerProfit.plus(reimbursement);
+            propProfit = propProfit.minus(reimbursement);
+
+            refundsCost = refundsCost.plus(CHALLENGE_COST);
+            // payouts are 0 if won challenges are lost
+            // payoutsCost = payoutsCost.plus(PAYOUT);
+            reimburseBrokerLossCost =
+              reimburseBrokerLossCost.plus(brokerLossReimb);
+          }
 					
-					// Apply new4 preset exception: if we have 4+ sequential TPs, this challenge is not paid
-					if (!shouldIncrementChallengesBought) {
-						// console.log(`\n🚫 new4 preset: Challenge not paid due to ${sequentialTPs} sequential TPs`);
-						// Don't count this as a bought challenge, but still process the win
-						challengesBought--; // Decrement the already incremented count from challenge start
-					}
-					const brokerLossReimb = brokerBalance.lt(BROKER_SEED)
-						? BROKER_SEED.minus(brokerBalance)
-						: new Decimal(0);
-					const reimbursement =
-						CHALLENGE_COST.plus(brokerLossReimb).plus(PAYOUT);
-
-					customerProfit = customerProfit.plus(reimbursement);
-					propProfit = propProfit.minus(reimbursement);
-
-					refundsCost = refundsCost.plus(CHALLENGE_COST);
-					payoutsCost = payoutsCost.plus(PAYOUT);
-					reimburseBrokerLossCost =
-						reimburseBrokerLossCost.plus(brokerLossReimb);
-
 					// Complete challenge log
 					if (shouldTrackHistory && currentChallenge) {
 						currentChallenge.outcome = "won";
