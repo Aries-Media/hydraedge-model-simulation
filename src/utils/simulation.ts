@@ -59,8 +59,8 @@ export interface SimulationParams {
 	maxLossRatio?: number;
 	dailyLossRatio?: number;
 	targetProfitRatio?: number;
-	/** Selected levels preset */
-	levelsPreset?: string;
+	/** Selected strategy */
+	strategy?: string;
 }
 
 export interface SimulationResult {
@@ -169,8 +169,18 @@ const makePicker = (levels: LevelRule[]) => {
 };
 
 /** Hedging lot‑coefficient for the current balance (scaled variants). */
-const hedgeCoeff = (bal: D, start: D): D => {
+const hedgeCoeff = (bal: D, start: D, strategy?: string): D => {
 	const ratio = bal.div(start);
+	
+	if (strategy === "new4") {
+		// new4 strategy: different coefficients based on balance levels
+		if (ratio.lt(LOT_THRESHOLD_1)) return new Decimal(0.15); // balance minor than second level
+		if (ratio.lt(LOT_THRESHOLD_2)) return new Decimal(0.25); // balance minor than third level
+		if (ratio.lt(new Decimal(1.18))) return new Decimal(0.40); // balance minor than fourth level (assuming 1.18 as fourth level)
+		return new Decimal(0.65); // balance more than fourth level
+	}
+	
+	// Default strategy
 	if (ratio.lt(LOT_THRESHOLD_1)) return new Decimal(0.15);
 	if (ratio.lt(LOT_THRESHOLD_2)) return new Decimal(0.3);
 	return new Decimal(0.6);
@@ -297,7 +307,7 @@ export function runSimulation({
 	maxLossRatio = 0.07,
 	dailyLossRatio = 0.04,
 	targetProfitRatio = 0.14,
-	levelsPreset,
+	strategy,
 }: SimulationParams): SimulationResult {
 	// Use form parameters or defaults
 	const MAX_DRAWDOWN_RATIO = new Decimal(maxLossRatio);
@@ -442,7 +452,7 @@ export function runSimulation({
 				sl = calculateBurnSL(propBalance, START, MAX_DRAWDOWN_RATIO);
 			}
 
-			const coeff = hedgeCoeff(propBalance, START);
+			const coeff = hedgeCoeff(propBalance, START, strategy);
 			const outcome = pickOutcome(sl, tp, tradeOutcomeStrategy);
 
 			// console.log(
@@ -559,9 +569,9 @@ export function runSimulation({
 				/* —— Challenge WON —— */
 				challengesWon++;
 
-				// Special logic for new4 preset: don't increment challengesBought after 4 sequential TPs
+				// Special logic for new4 strategy: don't increment challengesBought after 4 sequential TPs
 				const shouldIncrementChallengesBought = !(
-					levelsPreset === "new4" && sequentialTPs >= 4
+					strategy === "new4" && sequentialTPs >= 4
 				);
 
 				if (burnWonChallenges) {

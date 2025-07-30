@@ -269,7 +269,7 @@ const formSchema = z.object({
 	levels: z.array(levelRuleSchema).optional(),
 	realLevels: z.array(levelRuleSchema).optional(),
 	balanceDistribution: z.array(balanceDistributionSchema).optional(),
-	levelsPreset: z.string().optional(),
+	strategy: z.string().optional(),
 });
 
 interface SimulationFormProps {
@@ -291,7 +291,7 @@ interface SimulationFormProps {
 		levels?: LevelRule[];
 		realLevels?: LevelRule[];
 		balanceDistribution?: BalanceDistribution[];
-		levelsPreset?: string;
+		strategy?: string;
 	}) => void;
 	isLoading?: boolean;
 	showSubmitButton?: boolean;
@@ -370,8 +370,8 @@ export function SimulationForm({
 	});
 
 	const handlePresetSelect = (presetKey: string) => {
-		// Set the levelsPreset value in the form
-		form.setValue("levelsPreset", presetKey);
+		// Set the strategy value in the form
+		form.setValue("strategy", presetKey);
 		
 		if (presetKey === "default") {
 			replaceLevels(PRESET_LEVELS.default);
@@ -448,7 +448,7 @@ export function SimulationForm({
 			levels,
 			realLevels,
 			balanceDistribution,
-			levelsPreset: values.levelsPreset,
+			strategy: values.strategy,
 		});
 	};
 
