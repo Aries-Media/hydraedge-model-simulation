@@ -60,7 +60,8 @@ export function SimulationResults({
                   <TableHead className="text-right min-w-[120px]">Challenges Bought</TableHead>
                   <TableHead className="text-right min-w-[120px]">Challenges Won</TableHead>
                   <TableHead className="text-right min-w-[120px]">Challenges Lost</TableHead>
-                  <TableHead className="text-right min-w-[100px]">Prop Profit</TableHead>
+                  <TableHead className="text-right min-w-[120px]">Total Prop Profit</TableHead>
+                  <TableHead className="text-right min-w-[120px]">Avg Prop Profit</TableHead>
                   <TableHead className="text-right min-w-[100px]">Payouts Cost</TableHead>
                   <TableHead className="text-right min-w-[100px]">Refunds Cost</TableHead>
                   <TableHead className="text-right min-w-[140px]">Reimburse Broker Loss Cost</TableHead>
@@ -101,6 +102,9 @@ export function SimulationResults({
                       </TableCell>
                       <TableCell className={`text-right ${result.propProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         ${result.propProfit.toFixed(0)}
+                      </TableCell>
+                      <TableCell className={`text-right ${(result.propProfit / (result.clientsNumber || 1)) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        ${(result.propProfit / (result.clientsNumber || 1)).toFixed(0)}
                       </TableCell>
                       <TableCell className="text-right">
                         ${result.payoutsCost.toFixed(0)}
