@@ -404,7 +404,7 @@ export function runSimulation({
 		while (tradesLeft > 0) {
 			if (!challengeOngoing) {
 				/* —— new challenge purchase —— */
-				console.log("\n\nNEW Challenge");
+				// console.log("\n\nNEW Challenge");
 				challengesBought++;
 				challengeOngoing = true;
 				clientTotalAmountSpent = clientTotalAmountSpent.plus(CHALLENGE_COST);
@@ -445,18 +445,18 @@ export function runSimulation({
 			const coeff = hedgeCoeff(propBalance, START);
 			const outcome = pickOutcome(sl, tp, tradeOutcomeStrategy);
 
-			console.log(
-				"Trade",
-				tradesPerClient - tradesLeft,
-				"|",
-				"balance:",
-				propBalance.toNumber(),
-				"- SL:",
-				sl.toNumber(),
-				"TP:",
-				tp.toNumber(),
-			);
-			console.log("Result:", outcome, "\n");
+			// console.log(
+			// 	"Trade",
+			// 	tradesPerClient - tradesLeft,
+			// 	"|",
+			// 	"balance:",
+			// 	propBalance.toNumber(),
+			// 	"- SL:",
+			// 	sl.toNumber(),
+			// 	"TP:",
+			// 	tp.toNumber(),
+			// );
+			// console.log("Result:", outcome, "\n");
 
 			let brokerPL = new Decimal(0); // signed P&L for this trade
 			let singleStopHit = false;
@@ -569,7 +569,7 @@ export function runSimulation({
 					
 					// Apply new4 preset exception: if we have 4+ sequential TPs, this challenge is not paid
 					if (!shouldIncrementChallengesBought) {
-						console.log(`\n🚫 new4 preset: Challenge not paid due to ${sequentialTPs} sequential TPs`);
+						// console.log(`\n🚫 new4 preset: Challenge not paid due to ${sequentialTPs} sequential TPs`);
 						// Don't count this as a bought challenge, but still process the win
 						challengesBought--; // Decrement the already incremented count from challenge start
 					}
@@ -626,18 +626,18 @@ export function runSimulation({
 
 					const outcomeR = pickOutcome(slR, tpR, tradeOutcomeStrategy);
 
-					console.log(
-						"## REAL Trade",
-						tradesPerClient - tradesLeft,
-						"|",
-						"balance:",
-						propBalance.toNumber(),
-						"- SL:",
-						slR.toNumber(),
-						"TP:",
-						tpR.toNumber(),
-					);
-					console.log("Result:", outcomeR, "\n");
+					// console.log(
+					// 	"## REAL Trade",
+					// 	tradesPerClient - tradesLeft,
+					// 	"|",
+					// 	"balance:",
+					// 	propBalance.toNumber(),
+					// 	"- SL:",
+					// 	slR.toNumber(),
+					// 	"TP:",
+					// 	tpR.toNumber(),
+					// );
+					// console.log("Result:", outcomeR, "\n");
 
 					const balanceBeforeReal = propBalance;
 					const brokerBalanceBeforeReal = brokerBalance;
