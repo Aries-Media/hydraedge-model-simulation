@@ -113,6 +113,33 @@ const PRESET_LEVELS = {
 			tp: "",
 		},
 	],
+	new4: [
+		{
+			maxBalance: "200000",
+			sl: "10200",
+			tp: "8000",
+		},
+		{
+			maxBalance: "208000",
+			sl: "10400",
+			tp: "7800",
+		},
+		{
+			maxBalance: "215800",
+			sl: "10800",
+			tp: "7800",
+		},
+		{
+			maxBalance: "223600",
+			sl: "11200",
+			tp: "7800",
+		},
+		{
+			maxBalance: "230000",
+			sl: "11200",
+			tp: "",
+		},
+	],
 	mid: [
 		{
 			maxBalance: "200000",
@@ -174,6 +201,7 @@ const PRESET_REAL_LEVELS = {
 			tp: "2000",
 		},
 	],
+	new4: [],
 	blank: [],
 };
 
@@ -217,7 +245,15 @@ const formSchema = z.object({
 		return !Number.isNaN(num) && num >= 1 && num <= 1000;
 	}, "Must be a number between 1 and 1000"),
 	burnWonChallenges: z.boolean(),
-	tradeOutcomeStrategy: z.enum(['fifty_fifty', 'geometric_distance', 'logarithmic_distance', 'average', 'burn_after_sl']).optional(),
+	tradeOutcomeStrategy: z
+		.enum([
+			"fifty_fifty",
+			"geometric_distance",
+			"logarithmic_distance",
+			"average",
+			"burn_after_sl",
+		])
+		.optional(),
 	maxLossRatio: z.string().refine((val) => {
 		const num = Number.parseFloat(val);
 		return !Number.isNaN(num) && num > 0 && num <= 100;
@@ -242,7 +278,12 @@ interface SimulationFormProps {
 		initialBalance: number;
 		commissionPerTrade: number;
 		burnWonChallenges: boolean;
-		tradeOutcomeStrategy: 'fifty_fifty' | 'geometric_distance' | 'logarithmic_distance' | 'average' | 'burn_after_sl';
+		tradeOutcomeStrategy:
+			| "fifty_fifty"
+			| "geometric_distance"
+			| "logarithmic_distance"
+			| "average"
+			| "burn_after_sl";
 		maxLossRatio: number;
 		dailyLossRatio: number;
 		targetProfitRatio: number;
@@ -278,7 +319,7 @@ export function SimulationForm({
 			clientsNumber: "500",
 			tradesPerClient: "250",
 			burnWonChallenges: false,
-			tradeOutcomeStrategy: 'geometric_distance',
+			tradeOutcomeStrategy: "geometric_distance",
 			maxLossRatio: "7",
 			dailyLossRatio: "4",
 			targetProfitRatio: "14",
@@ -335,6 +376,8 @@ export function SimulationForm({
 			replaceLevels(PRESET_LEVELS.mid);
 		} else if (presetKey === "new") {
 			replaceLevels(PRESET_LEVELS.new);
+		} else if (presetKey === "new4") {
+			replaceLevels(PRESET_LEVELS.new4);
 		} else if (presetKey === "blank") {
 			replaceLevels(PRESET_LEVELS.blank);
 		}
@@ -345,6 +388,8 @@ export function SimulationForm({
 			replaceRealLevels(PRESET_REAL_LEVELS.default);
 		} else if (presetKey === "original") {
 			replaceRealLevels(PRESET_REAL_LEVELS.original);
+		} else if (presetKey === "new4") {
+			replaceRealLevels(PRESET_REAL_LEVELS.new4);
 		} else if (presetKey === "blank") {
 			replaceRealLevels(PRESET_REAL_LEVELS.blank);
 		}
@@ -391,7 +436,7 @@ export function SimulationForm({
 			initialBalance: 200000, // Default value when no distribution is used
 			commissionPerTrade: 10, // Fixed default
 			burnWonChallenges: values.burnWonChallenges,
-			tradeOutcomeStrategy: values.tradeOutcomeStrategy || 'geometric_distance',
+			tradeOutcomeStrategy: values.tradeOutcomeStrategy || "geometric_distance",
 			maxLossRatio: Number.parseFloat(values.maxLossRatio) / 100,
 			dailyLossRatio: Number.parseFloat(values.dailyLossRatio) / 100,
 			targetProfitRatio: Number.parseFloat(values.targetProfitRatio) / 100,
@@ -445,9 +490,7 @@ export function SimulationForm({
 											variant="outline"
 											className="flex w-full items-center justify-between p-4 hover:bg-muted/50"
 										>
-											<h3 className="text-lg font-medium">
-												Risk Parameters
-											</h3>
+											<h3 className="text-lg font-medium">Risk Parameters</h3>
 											<ChevronDown
 												className={`h-4 w-4 transition-transform duration-200 ${isRiskParametersOpen ? "rotate-180" : ""}`}
 											/>
@@ -533,16 +576,29 @@ export function SimulationForm({
 													<FormItem className="flex-1 min-w-[200px]">
 														<FormLabel>Trade Outcome Strategy</FormLabel>
 														<FormControl>
-															<Select value={field.value || 'geometric_distance'} onValueChange={field.onChange}>
+															<Select
+																value={field.value || "geometric_distance"}
+																onValueChange={field.onChange}
+															>
 																<SelectTrigger>
 																	<SelectValue placeholder="Select strategy" />
 																</SelectTrigger>
 																<SelectContent>
-																	<SelectItem value="fifty_fifty">Fifty Fifty</SelectItem>
-							<SelectItem value="geometric_distance">Geometric Distance</SelectItem>
-							<SelectItem value="logarithmic_distance">Logarithmic Distance</SelectItem>
-							<SelectItem value="average">Average</SelectItem>
-							<SelectItem value="burn_after_sl">Burn After SL</SelectItem>
+																	<SelectItem value="fifty_fifty">
+																		Fifty Fifty
+																	</SelectItem>
+																	<SelectItem value="geometric_distance">
+																		Geometric Distance
+																	</SelectItem>
+																	<SelectItem value="logarithmic_distance">
+																		Logarithmic Distance
+																	</SelectItem>
+																	<SelectItem value="average">
+																		Average
+																	</SelectItem>
+																	<SelectItem value="burn_after_sl">
+																		Burn After SL
+																	</SelectItem>
 																</SelectContent>
 															</Select>
 														</FormControl>
@@ -802,6 +858,9 @@ export function SimulationForm({
 														</SelectItem>
 														<SelectItem value="original">Original</SelectItem>
 														<SelectItem value="new">New Strategy</SelectItem>
+														<SelectItem value="new4">
+															New Strategy 4 Points
+														</SelectItem>
 														<SelectItem value="mid">Mid</SelectItem>
 													</SelectContent>
 												</Select>
@@ -957,6 +1016,9 @@ export function SimulationForm({
 													<SelectContent className="bg-popover z-50">
 														<SelectItem value="blank">+ Blank</SelectItem>
 														<SelectItem value="original">Original</SelectItem>
+														<SelectItem value="new4">
+															New Strategy 4 Points
+														</SelectItem>
 														<SelectItem value="default">Default</SelectItem>
 													</SelectContent>
 												</Select>
