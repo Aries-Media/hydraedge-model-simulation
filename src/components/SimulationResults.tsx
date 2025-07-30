@@ -100,11 +100,11 @@ export function SimulationResults({
                       <TableCell className="text-right">
                         {result.challengesLost.toFixed(1)}
                       </TableCell>
+                      <TableCell className={`text-right ${result.totalPropProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        ${result.totalPropProfit.toFixed(0)}
+                      </TableCell>
                       <TableCell className={`text-right ${result.propProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         ${result.propProfit.toFixed(0)}
-                      </TableCell>
-                      <TableCell className={`text-right ${(result.propProfit / (result.clientsNumber || 1)) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        ${(result.propProfit / (result.clientsNumber || 1)).toFixed(0)}
                       </TableCell>
                       <TableCell className="text-right">
                         ${result.payoutsCost.toFixed(0)}

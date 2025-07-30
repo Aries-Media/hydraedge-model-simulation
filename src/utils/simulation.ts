@@ -85,6 +85,7 @@ export interface SimulationResult {
 	/* money flowing IN when a challenge is LOST */
 	extractedBrokerProfit: number; // portion of broker balance > seed withdrawn at loss
 	propProfit: number;
+	totalPropProfit: number;
 
 	/* convenience aggregates */
 	totalAmountSpent: number; // payoutsCost + refundsCost + reimburseBrokerLossCost + commissionCost
@@ -820,6 +821,7 @@ export function runSimulation({
 
 		extractedBrokerProfit: avgExtractedBrokerProfit.toNumber(),
 		propProfit: avgPropProfit.toNumber(),
+		totalPropProfit: totalPropProfit.toNumber(),
 
 		totalAmountSpent: avgTotalAmountSpent.toNumber(),
 		totalLots: avgTotalLots.toNumber(),
