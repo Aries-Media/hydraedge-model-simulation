@@ -641,6 +641,32 @@ export function SimulationForm({
 											the Prop Firm.
 										</p>
 
+										{/* Challenge Parameters Presets */}
+										<div className="mb-4">
+											<FormLabel className="text-sm font-medium">Challenge Presets</FormLabel>
+											<Select 
+												onValueChange={(value) => {
+													if (value === "fast_regular") {
+														form.setValue("maxLossRatio", "7");
+														form.setValue("dailyLossRatio", "4");
+														form.setValue("targetProfitRatio", "14");
+													} else if (value === "super_plus") {
+														form.setValue("maxLossRatio", "7");
+														form.setValue("dailyLossRatio", "5");
+														form.setValue("targetProfitRatio", "15");
+													}
+												}}
+											>
+												<SelectTrigger className="w-full md:w-[250px]">
+													<SelectValue placeholder="Select challenge preset" />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="fast_regular">Fast Regular</SelectItem>
+													<SelectItem value="super_plus">Super Plus</SelectItem>
+												</SelectContent>
+											</Select>
+										</div>
+
 										<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 											<FormField
 												control={form.control}
