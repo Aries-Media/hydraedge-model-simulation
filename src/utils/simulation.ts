@@ -13,12 +13,14 @@ export interface LevelRule {
 	/** upper inclusive bound for which this rule applies */
 	maxBalance: D; // inclusive upper bound
 	/** stop‑loss distance in account currency (number) or function of balance */
-	sl: D | ((balance: D) => D); // stop-loss distance
+	// sl: D | ((balance: D) => D); // stop-loss distance
+  sl: D;
 	/**
 	 * take‑profit distance. When omitted the engine will derive it at run‑time
 	 * as (maxBalance – currentBalance), i.e. "close the gap to the tier ceiling".
 	 */
-	tp?: D | ((balance: D) => D);
+	// tp?: D | ((balance: D) => D);
+  tp: D;
 }
 
 export interface BalanceDistribution {
@@ -116,26 +118,16 @@ export interface SimulationResult {
 	avgProfitPerTrade: number;
 }
 
-/* ────────── Constants ────────── */
-
-// Default values - these will be overridden by form parameters
-const DEFAULT_MAX_DRAWDOWN_RATIO = new Decimal(0.07);
-const DEFAULT_SINGLE_TRADE_STOP_RATIO = new Decimal(0.04);
-const DEFAULT_PROFIT_TARGET_RATIO = new Decimal(0.14);
-const REAL_PHASE_PROFIT_RATIO = new Decimal(1.025); // 2.5 % above start in real phase (205 k / 200 k)
-
-const LOT_THRESHOLD_1 = new Decimal(1.06);
-const LOT_THRESHOLD_2 = new Decimal(1.12);
-
-const RATIO_MARGIN_INJECT = new Decimal(1.12);
-const BROKER_MARGIN_FACTOR = new Decimal(0.45);
-
 const toDec = (x: number | D): D => (x instanceof Decimal ? x : new Decimal(x));
 
-function lift(val: D | number | ((b: D) => D | number), bal: D): D {
-	if (typeof val === "function") return toDec(val(bal));
-	return toDec(val);
-}
+// Default values - these will be overridden by form parameters
+const REAL_PHASE_PROFIT_RATIO = toDec(1.02); // 2 % above start in real phase
+
+const LOT_THRESHOLD_1 = toDec(1.06);
+const LOT_THRESHOLD_2 = toDec(1.12);
+
+const RATIO_MARGIN_INJECT = toDec(1.12);
+const BROKER_MARGIN_FACTOR = toDec(0.45);
 
 /* ────────── Helpers ────────── */
 
@@ -147,44 +139,46 @@ function lift(val: D | number | ((b: D) => D | number), bal: D): D {
  */
 const makePicker = (levels: LevelRule[]) => {
 	const last = levels[levels.length - 1];
-	return (bal: D) => {
-		for (const lvl of levels)
-			if (bal.lte(lvl.maxBalance)) {
-				const sl = lift(lvl.sl, bal);
+	return (bal: D, scaleFactor: D) => {
+		for (let lvl of levels)
+			if (bal.lte(lvl.maxBalance.times(scaleFactor))) {
+				const sl = lvl.sl.times(scaleFactor);
 				const tp =
 					lvl.tp === undefined
-						? toDec(lvl.maxBalance)
+						? lvl.maxBalance
+                .times(scaleFactor)
 								.minus(bal)
 								.plus(50) // dynamic TP = gap to ceiling plus 50
-						: lift(lvl.tp, bal);
+						: lvl.tp.times(scaleFactor);
 				return { sl, tp };
 			}
 		/* fall back to last rule */
-		const sl = lift(last.sl, bal);
+		const sl = last.sl.times(scaleFactor);
 		const tp =
 			last.tp === undefined
-				? toDec(last.maxBalance).minus(bal)
-				: lift(last.tp, bal);
+				? last.maxBalance.times(scaleFactor).minus(bal)
+				: last.tp.times(scaleFactor);
 		return { sl, tp };
 	};
 };
 
+
 /** Hedging lot‑coefficient for the current balance (scaled variants). */
 const hedgeCoeff = (bal: D, start: D, strategy?: string): D => {
-	const ratio = bal.div(start);
 	
 	if (strategy === "new4") {
 		// new4 strategy: different coefficients based on balance levels
-		if (ratio.lt(LOT_THRESHOLD_1)) return new Decimal(0.15); // balance minor than second level
-		if (ratio.lt(LOT_THRESHOLD_2)) return new Decimal(0.25); // balance minor than third level
-		if (ratio.lt(new Decimal(1.18))) return new Decimal(0.40); // balance minor than fourth level (assuming 1.18 as fourth level)
-		return new Decimal(0.65); // balance more than fourth level
+		if (bal.lt(start.times(1.04))) return toDec(0.15); // balance minor than second level
+		if (bal.lt(start.times(1.07))) return toDec(0.25); // balance minor than third level
+		if (bal.lt(start.times(1.11))) return toDec(0.40); // balance minor than fourth level (assuming 1.18 as fourth level)
+		return toDec(0.65); // balance more than fourth level
 	}
 	
+  const ratio = bal.div(start);
 	// Default strategy
-	if (ratio.lt(LOT_THRESHOLD_1)) return new Decimal(0.15);
-	if (ratio.lt(LOT_THRESHOLD_2)) return new Decimal(0.3);
-	return new Decimal(0.6);
+	if (ratio.lt(LOT_THRESHOLD_1)) return toDec(0.15);
+	if (ratio.lt(LOT_THRESHOLD_2)) return toDec(0.3);
+	return toDec(0.6);
 };
 
 /** Returns "SL" or "TP" based on the specified strategy. */
@@ -286,7 +280,7 @@ function calculateBurnSL(
 	maxLossRatio: D,
 ): D {
 	const maxDrawdownThreshold = startBalance.times(
-		new Decimal(1).minus(maxLossRatio),
+		toDec(1).minus(maxLossRatio),
 	);
 	const burnSL = currentBalance.minus(maxDrawdownThreshold).plus(100); // Add small buffer
 	return burnSL.gt(0) ? burnSL : currentBalance.times(0.5); // Fallback to 50% of current balance
@@ -311,9 +305,9 @@ export function runSimulation({
 	strategy,
 }: SimulationParams): SimulationResult {
 	// Use form parameters or defaults
-	const MAX_DRAWDOWN_RATIO = new Decimal(maxLossRatio);
-	const SINGLE_TRADE_STOP_RATIO = new Decimal(dailyLossRatio);
-	const PROFIT_TARGET_RATIO = new Decimal(targetProfitRatio);
+	const MAX_DRAWDOWN_RATIO = toDec(maxLossRatio);
+	const SINGLE_TRADE_STOP_RATIO = toDec(dailyLossRatio);
+	const PROFIT_TARGET_RATIO = toDec(targetProfitRatio);
 
 	console.log("Using risk parameters:", {
 		maxLossRatio,
@@ -336,11 +330,6 @@ export function runSimulation({
 				: initialBalance.toNumber();
 		clientBalances = Array(clientsNumber).fill(singleBalance);
 	}
-	console.log(
-		"Clients Balance Distribution",
-		clientBalances,
-		effectiveDistribution,
-	);
 
 	// Initialize trade history tracking for single customer simulations
 	const shouldTrackHistory = clientsNumber === 1;
@@ -358,15 +347,15 @@ export function runSimulation({
 	let totalChallengesBought = 0;
 	let totalChallengesWon = 0;
 	let totalChallengesLost = 0;
-	let totalPayoutsCost = new Decimal(0);
-	let totalRefundsCost = new Decimal(0);
-	let totalReimburseBrokerLossCost = new Decimal(0);
-	let totalExtractedBrokerProfit = new Decimal(0);
-	let totalPropProfit = new Decimal(0);
-	let totalAmountSpent = new Decimal(0);
-	let totalLots = new Decimal(0);
-	let totalCommissionCost = new Decimal(0);
-	let totalNetProfit = new Decimal(0); // Declare this variable properly
+	let totalPayoutsCost = toDec(0);
+	let totalRefundsCost = toDec(0);
+	let totalReimburseBrokerLossCost = toDec(0);
+	let totalExtractedBrokerProfit = toDec(0);
+	let totalPropProfit = toDec(0);
+	let totalAmountSpent = toDec(0);
+	let totalLots = toDec(0);
+	let totalCommissionCost = toDec(0);
+	let totalNetProfit = toDec(0); // Declare this variable properly
 
 	// Run simulation for each client with their assigned balance
 	for (let clientIndex = 0; clientIndex < clientsNumber; clientIndex++) {
@@ -377,10 +366,10 @@ export function runSimulation({
 		const CHALLENGE_COST = toDec(900).times(scaleFactor);
 		const TRADE_LOTS = toDec(8).times(scaleFactor);
 		const START = toDec(clientInitialBalance);
-		const BROKER_SEED = toDec(brokerSeed ?? 6_000 * scaleFactor.toNumber());
+		const BROKER_SEED = brokerSeed ? toDec(brokerSeed) : toDec(6_000).times(scaleFactor);
 		const COMMISSION_PER_TRADE = toDec(commissionPerTrade);
 		const BROKER_BONUS = BROKER_SEED.times(BROKER_MARGIN_FACTOR);
-		const PAYOUT = toDec(4_000).times(scaleFactor);
+		const PAYOUT = toDec(clientInitialBalance).times(0.02);
 
 		if (!levels || !realLevels)
 			throw Error("Levels undefined cannot run simulation");
@@ -388,22 +377,22 @@ export function runSimulation({
 		const pickRealLevels = makePicker(realLevels);
 
 		// Client-specific bookkeeping
-		let propProfit = new Decimal(0);
-		let customerProfit = new Decimal(0);
-		let extractedBrokerProfit = new Decimal(0);
-		let commissionCost = new Decimal(0);
+		let propProfit = toDec(0);
+		let customerProfit = toDec(0);
+		let extractedBrokerProfit = toDec(0);
+		let commissionCost = toDec(0);
 		let challengesBought = 0;
 		let challengesWon = 0;
 		let challengesLost = 0;
-		let payoutsCost = new Decimal(0);
-		let refundsCost = new Decimal(0);
-		let reimburseBrokerLossCost = new Decimal(0);
-		let clientTotalAmountSpent = new Decimal(0);
-		let clientTotalLots = new Decimal(0);
+		let payoutsCost = toDec(0);
+		let refundsCost = toDec(0);
+		let reimburseBrokerLossCost = toDec(0);
+		let clientTotalAmountSpent = toDec(0);
+		let clientTotalLots = toDec(0);
 
 		let tradesLeft = tradesPerClient;
-		let propBalance = new Decimal(0);
-		let brokerBalance = new Decimal(0);
+		let propBalance = toDec(0);
+		let brokerBalance = toDec(0);
 		let marginMoved = false;
 		let challengeOngoing = false;
 		let realTrades = 0;
@@ -415,7 +404,6 @@ export function runSimulation({
 		while (tradesLeft > 0) {
 			if (!challengeOngoing) {
 				/* —— new challenge purchase —— */
-				// console.log("\n\nNEW Challenge");
 				challengesBought++;
 				challengeOngoing = true;
 				clientTotalAmountSpent = clientTotalAmountSpent.plus(CHALLENGE_COST);
@@ -443,7 +431,7 @@ export function runSimulation({
 			tradesLeft--;
 			totalTradeNumber++;
 
-			let { sl, tp } = pickLevels(propBalance);
+			let { sl, tp } = pickLevels(propBalance, scaleFactor);
 
 			// Override SL for burn_after_sl strategy when previous trade was SL
 			if (
@@ -456,20 +444,7 @@ export function runSimulation({
 			const coeff = hedgeCoeff(propBalance, START, strategy);
 			const outcome = pickOutcome(sl, tp, tradeOutcomeStrategy);
 
-			// console.log(
-			// 	"Trade",
-			// 	tradesPerClient - tradesLeft,
-			// 	"|",
-			// 	"balance:",
-			// 	propBalance.toNumber(),
-			// 	"- SL:",
-			// 	sl.toNumber(),
-			// 	"TP:",
-			// 	tp.toNumber(),
-			// );
-			// console.log("Result:", outcome, "\n");
-
-			let brokerPL = new Decimal(0); // signed P&L for this trade
+			let brokerPL = toDec(0); // signed P&L for this trade
 			let singleStopHit = false;
 			const balanceBefore = propBalance;
 			const brokerBalanceBefore = brokerBalance;
@@ -488,7 +463,7 @@ export function runSimulation({
 			brokerBalance = brokerBalance.plus(brokerPL);
 			brokerBalance = brokerBalance.minus(COMMISSION_PER_TRADE);
 			commissionCost = commissionCost.plus(COMMISSION_PER_TRADE);
-			clientTotalLots = clientTotalLots.plus(TRADE_LOTS);
+			clientTotalLots = clientTotalLots.plus(TRADE_LOTS).times(coeff);
 
 			// Track previous trade outcome and sequential TPs
 			if (outcome === "TP") {
@@ -529,10 +504,10 @@ export function runSimulation({
 			/* 2️⃣  evaluate lifetime conditions */
 
 			const drawdownHit = propBalance.lt(
-				START.times(new Decimal(1).minus(MAX_DRAWDOWN_RATIO)),
+				START.times(toDec(1).minus(MAX_DRAWDOWN_RATIO)),
 			);
 			const profitTargetHit = propBalance.gte(
-				START.times(new Decimal(1).plus(PROFIT_TARGET_RATIO)),
+				START.times(toDec(1).plus(PROFIT_TARGET_RATIO)),
 			);
 
 			if (singleStopHit || drawdownHit) {
@@ -578,13 +553,14 @@ export function runSimulation({
 				if (burnWonChallenges) {
 					challengeOngoing = false;
 
-          let brokerLossReimb = new Decimal(0);
+          let brokerLossReimb = toDec(0);
           if (strategy == "new4") {
             // Apply new4 preset exception: if we have 4+ sequential TPs, this challenge is not paid
             if (!shouldIncrementChallengesBought) {
-              // console.log(`\n🚫 new4 preset: Challenge not paid due to ${sequentialTPs} sequential TPs`);
               // Don't count this as a bought challenge, but still process the win
               challengesBought--; // Decrement the already incremented count from challenge start
+              clientTotalAmountSpent = clientTotalAmountSpent.minus(CHALLENGE_COST);
+              propProfit = propProfit.minus(CHALLENGE_COST);
             }
 
             const reimbursement = BROKER_SEED.plus(BROKER_SEED.div(2));
@@ -595,7 +571,7 @@ export function runSimulation({
           } else {
             brokerLossReimb = brokerBalance.lt(BROKER_SEED)
               ? BROKER_SEED.minus(brokerBalance)
-              : new Decimal(0);
+              : toDec(0);
             const reimbursement =
             CHALLENGE_COST.plus(brokerLossReimb).plus(PAYOUT);
 
@@ -636,7 +612,7 @@ export function runSimulation({
 					commissionCost = commissionCost.plus(COMMISSION_PER_TRADE);
 					brokerBalance = brokerBalance.minus(COMMISSION_PER_TRADE);
 
-					let { sl: slR, tp: tpR } = pickRealLevels(propBalance);
+					let { sl: slR, tp: tpR } = pickRealLevels(propBalance, scaleFactor);
 
 					// Override SL for burn_after_sl strategy when previous trade was SL (real phase)
 					if (
@@ -647,19 +623,6 @@ export function runSimulation({
 					}
 
 					const outcomeR = pickOutcome(slR, tpR, tradeOutcomeStrategy);
-
-					// console.log(
-					// 	"## REAL Trade",
-					// 	tradesPerClient - tradesLeft,
-					// 	"|",
-					// 	"balance:",
-					// 	propBalance.toNumber(),
-					// 	"- SL:",
-					// 	slR.toNumber(),
-					// 	"TP:",
-					// 	tpR.toNumber(),
-					// );
-					// console.log("Result:", outcomeR, "\n");
 
 					const balanceBeforeReal = propBalance;
 					const brokerBalanceBeforeReal = brokerBalance;

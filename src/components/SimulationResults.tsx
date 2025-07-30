@@ -59,7 +59,7 @@ export function SimulationResults({
                   <TableHead className="text-right min-w-[100px]">Customer Profit</TableHead>
                   <TableHead className="text-right min-w-[120px]">Challenges Bought</TableHead>
                   <TableHead className="text-right min-w-[120px]">Challenges Won</TableHead>
-                  <TableHead className="text-right min-w-[120px]">Challenges Lost</TableHead>
+                  {/* <TableHead className="text-right min-w-[120px]">Challenges Lost</TableHead> */}
                   <TableHead className="text-right min-w-[120px]">Total Prop Profit</TableHead>
                   <TableHead className="text-right min-w-[120px]">Avg Prop Profit</TableHead>
                   <TableHead className="text-right min-w-[100px]">Payouts Cost</TableHead>
@@ -97,9 +97,9 @@ export function SimulationResults({
                       <TableCell className="text-right">
                         {result.challengesWon.toFixed(1)}
                       </TableCell>
-                      <TableCell className="text-right">
-                        {result.challengesLost.toFixed(1)}
-                      </TableCell>
+                      {/* <TableCell className="text-right"> */}
+                      {/*   {result.challengesLost.toFixed(1)} */}
+                      {/* </TableCell> */}
                       <TableCell className={`text-right ${result.totalPropProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         ${result.totalPropProfit.toFixed(0)}
                       </TableCell>
