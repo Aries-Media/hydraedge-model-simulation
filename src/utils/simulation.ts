@@ -59,6 +59,8 @@ export interface SimulationParams {
 	maxLossRatio?: number;
 	dailyLossRatio?: number;
 	targetProfitRatio?: number;
+	/** Selected levels preset */
+	levelsPreset?: string;
 }
 
 export interface SimulationResult {
@@ -295,6 +297,7 @@ export function runSimulation({
 	maxLossRatio = 0.07,
 	dailyLossRatio = 0.04,
 	targetProfitRatio = 0.14,
+	levelsPreset,
 }: SimulationParams): SimulationResult {
 	// Use form parameters or defaults
 	const MAX_DRAWDOWN_RATIO = new Decimal(maxLossRatio);
@@ -396,6 +399,7 @@ export function runSimulation({
 		let currentChallenge: ChallengeLog | undefined;
 		let totalTradeNumber = 0;
 		let previousTradeOutcome: "SL" | "TP" | null = null;
+		let sequentialTPs = 0; // Track sequential TPs for new4 preset exception
 
 		while (tradesLeft > 0) {
 			if (!challengeOngoing) {
@@ -410,6 +414,7 @@ export function runSimulation({
 				brokerBalance = BROKER_SEED;
 				marginMoved = false;
 				previousTradeOutcome = null; // Reset for new challenge
+				sequentialTPs = 0; // Reset sequential TP counter for new challenge
 
 				// Initialize challenge log for single customer
 				if (shouldTrackHistory && tradeHistory) {
@@ -474,7 +479,12 @@ export function runSimulation({
 			commissionCost = commissionCost.plus(COMMISSION_PER_TRADE);
 			clientTotalLots = clientTotalLots.plus(TRADE_LOTS);
 
-			// Track previous trade outcome for burn_after_sl strategy
+			// Track previous trade outcome and sequential TPs
+			if (outcome === "TP") {
+				sequentialTPs++;
+			} else {
+				sequentialTPs = 0; // Reset on SL
+			}
 			previousTradeOutcome = outcome;
 
 			const marginMovedThisTrade =
@@ -549,8 +559,20 @@ export function runSimulation({
 				/* —— Challenge WON —— */
 				challengesWon++;
 
+				// Special logic for new4 preset: don't increment challengesBought after 4 sequential TPs
+				const shouldIncrementChallengesBought = !(
+					levelsPreset === "new4" && sequentialTPs >= 4
+				);
+
 				if (burnWonChallenges) {
 					challengeOngoing = false;
+					
+					// Apply new4 preset exception: if we have 4+ sequential TPs, this challenge is not paid
+					if (!shouldIncrementChallengesBought) {
+						console.log(`\n🚫 new4 preset: Challenge not paid due to ${sequentialTPs} sequential TPs`);
+						// Don't count this as a bought challenge, but still process the win
+						challengesBought--; // Decrement the already incremented count from challenge start
+					}
 					const brokerLossReimb = brokerBalance.lt(BROKER_SEED)
 						? BROKER_SEED.minus(brokerBalance)
 						: new Decimal(0);
@@ -584,6 +606,7 @@ export function runSimulation({
 				/* ——— REAL PHASE ——— */
 				propBalance = START; // reset to start
 				previousTradeOutcome = null; // Reset for real phase
+				sequentialTPs = 0; // Reset sequential TP counter for real phase
 				while (tradesLeft > 0) {
 					tradesLeft--;
 					totalTradeNumber++;
@@ -631,7 +654,12 @@ export function runSimulation({
 					brokerBalance = brokerBalance.plus(brokerPL);
 					clientTotalLots = clientTotalLots.plus(TRADE_LOTS.div(2));
 
-					// Track previous trade outcome for burn_after_sl strategy (real phase)
+					// Track previous trade outcome and sequential TPs (real phase)
+					if (outcomeR === "TP") {
+						sequentialTPs++;
+					} else {
+						sequentialTPs = 0; // Reset on SL
+					}
 					previousTradeOutcome = outcomeR;
 
 					// Log real phase trade
