@@ -40,7 +40,7 @@ export function CustomerView() {
         dailyLossRatio: 0.04, // Default
         targetProfitRatio: 0.08, // Default
         levels: [
-          // Original Unbalanced preset for trading levels
+          // Fast Regular preset for trading levels
           { 
             type: "evaluation", 
             targetProfit: 8, 

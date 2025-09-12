@@ -886,12 +886,12 @@ export function SimulationForm({
 													<SelectContent className="bg-popover z-50">
 														<SelectItem value="blank">+ Blank</SelectItem>
 														<SelectItem value="default">
-															Original Unbalanced
+															Fast Regular
 														</SelectItem>
 														<SelectItem value="original">Original</SelectItem>
 														<SelectItem value="new">New Strategy</SelectItem>
 														<SelectItem value="new4">
-															New Strategy 4 Points
+															Super Plus
 														</SelectItem>
 														<SelectItem value="mid">Mid</SelectItem>
 													</SelectContent>
@@ -1049,7 +1049,7 @@ export function SimulationForm({
 														<SelectItem value="blank">+ Blank</SelectItem>
 														<SelectItem value="original">Original</SelectItem>
 														<SelectItem value="new4">
-															New Strategy 4 Points
+															Super Plus
 														</SelectItem>
 														<SelectItem value="default">Default</SelectItem>
 													</SelectContent>
