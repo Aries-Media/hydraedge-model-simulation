@@ -26,7 +26,7 @@ type UIOnSubmit =
       // Preset-run path
       kind: "preset";
       challengeId: "fast_regular" | "super_plus";
-      hedgeId?: "default" | "new4";
+        strategyId?: "default" | "new4";
       outcomeStrategy:
         | "fifty_fifty"
         | "geometric_distance"
@@ -44,7 +44,7 @@ type UIOnSubmit =
       // Custom-run path
       kind: "custom";
       customId: string; // e.g. "custom-<timestamp>"
-      hedgeId?: "default" | "new4";
+      strategyId?: "default" | "new4";
       outcomeStrategy:
         | "fifty_fifty"
         | "geometric_distance"
@@ -76,10 +76,10 @@ const Index = () => {
       let result: SimulationResult;
 
       if (payload.kind === "preset") {
-        // Run directly with preset challenge + hedge IDs
+        // Run directly with preset challenge + strategy IDs
         result = runWithChallenge({
           challengeId: payload.challengeId,
-          hedgeId: payload.hedgeId ?? "default",
+          strategyId: payload.strategyId ?? "default",
           outcomeStrategy: payload.outcomeStrategy,
           clientsNumber: payload.clientsNumber,
           tradesPerClient: payload.tradesPerClient,
@@ -135,7 +135,7 @@ const Index = () => {
 
         result = runWithChallenge({
           challengeId: customId,
-          hedgeId: payload.hedgeId ?? "default",
+          strategyId: payload.strategyId ?? "default",
           outcomeStrategy: payload.outcomeStrategy,
           clientsNumber: payload.clientsNumber,
           tradesPerClient: payload.tradesPerClient,

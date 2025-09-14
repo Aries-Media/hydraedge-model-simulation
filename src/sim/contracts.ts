@@ -26,7 +26,7 @@ export interface PayoutPolicy {
 }
 
 export interface ChallengeMeta {
-  recommendedHedgeId?: string; // e.g. "new4"
+  recommendedStrategyId?: string; // e.g. "new4"
   label?: string;
   description?: string;
 }
@@ -42,11 +42,13 @@ export interface Challenge {
   payoutPolicy(initialBalance: D): PayoutPolicy;
 }
 
-export interface HedgeStrategy {
-  id: string; // "default" | "new4" | etc.
-  coeff(bal: D, start: D): D;  // lot coefficient
-  /** optional: hooks for special cases */
-  onEvaluationWin?(ctx: { sequentialTPs: number }): { ignorePayment: boolean };
+export interface Strategy {
+  id: string;
+  evaluate: (params?: any) => {
+    tradeOutcomeOffset: D;
+    slMultiplier: D;
+    tpMultiplier: D;
+  };
 }
 
 export type TradeOutcomeStrategy =

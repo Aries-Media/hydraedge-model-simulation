@@ -7,7 +7,7 @@ import {
 } from "../constants";
 import { makePicker } from "../lib/levels";
 import { calculateBurnSL } from "../lib/risk";
-import { hedgeCoeff } from "../strategies/hedge";
+import { strategyCoeff } from "../strategies/strategy";
 import { pickOutcome, type TradeOutcomeStrategy } from "../strategies/outcome";
 import {
   logTrade,
@@ -33,7 +33,7 @@ export interface EvalConfig {
   profitTargetRatio: D;
   burnWonChallenges: boolean;
   tradeOutcomeStrategy: TradeOutcomeStrategy;
-  strategy?: string; // custom hedge preset like "new4"
+  strategy?: string; // custom strategy preset like "new4"
   levels: LevelRule[];
   realLevels: LevelRule[];
   shouldTrackHistory: boolean;
@@ -101,7 +101,7 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
     sl = calculateBurnSL(state.propBalance, START, MAX_DRAWDOWN_RATIO);
   }
 
-  const coeff = hedgeCoeff(state.propBalance, START, strategy);
+  const coeff = strategyCoeff(state.propBalance, START, strategy);
   const outcome = pickOutcome(sl, tp, tradeOutcomeStrategy);
 
   let brokerPL = toDec(0);

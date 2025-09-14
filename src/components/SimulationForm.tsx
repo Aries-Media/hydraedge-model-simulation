@@ -114,9 +114,9 @@ const formSchema = z.object({
   burnWonChallenges: z.boolean(),
   tradeOutcomeStrategy: z.enum(["fifty_fifty","geometric_distance","logarithmic_distance","average","burn_after_sl"]).optional(),
 
-  // Challenge & Hedge preset selections
+  // Challenge & Strategy preset selections
   challengePreset: z.enum(["fast_regular","super_plus","custom"]).default("fast_regular"),
-  hedgePreset: z.enum(["default","new4"]).default("default"),
+  strategyPreset: z.enum(["default","new4"]).default("default"),
 
   // Risk (used for "custom", also surfaced to let users tweak)
   maxLossRatio: z.string(),
@@ -136,7 +136,7 @@ interface SimulationFormProps {
     | {
         kind: "preset";
         challengeId: "fast_regular" | "super_plus";
-        hedgeId?: "default" | "new4";
+        strategyId?: "default" | "new4";
         outcomeStrategy:
           | "fifty_fifty"
           | "geometric_distance"
@@ -153,7 +153,7 @@ interface SimulationFormProps {
     | {
         kind: "custom";
         customId: string;
-        hedgeId?: "default" | "new4";
+        strategyId?: "default" | "new4";
         outcomeStrategy:
           | "fifty_fifty"
           | "geometric_distance"
@@ -200,7 +200,7 @@ export function SimulationForm({
       tradeOutcomeStrategy: "geometric_distance",
 
       challengePreset: "fast_regular",
-      hedgePreset: "default",
+      strategyPreset: "default",
 
       maxLossRatio: "7",
       dailyLossRatio: "4",
@@ -272,9 +272,9 @@ export function SimulationForm({
   useEffect(() => {
     if (!isCustom) {
       const snap = presetSnapshot;
-      const recommended = snap?.meta?.recommendedHedgeId;
-      if (recommended && form.getValues("hedgePreset") !== recommended) {
-        form.setValue("hedgePreset", recommended as any);
+      const recommended = snap?.meta?.recommendedStrategyId;
+      if (recommended && form.getValues("strategyPreset") !== recommended) {
+        form.setValue("strategyPreset", recommended as any);
       }
     }
   }, [presetSnapshot, isCustom, form]);
@@ -309,7 +309,7 @@ export function SimulationForm({
       balanceDistribution,
       burnWonChallenges: values.burnWonChallenges,
       outcomeStrategy: values.tradeOutcomeStrategy || "geometric_distance",
-      hedgeId: values.hedgePreset,
+      strategyId: values.strategyPreset,
     } as const;
 
     if (!isCustom) {
@@ -438,12 +438,12 @@ export function SimulationForm({
                 </div>
               </Collapsible>
 
-              {/* Challenge & Hedge selection */}
+              {/* Challenge & Strategy selection */}
               <Collapsible open={isChallengeParametersOpen} onOpenChange={setIsChallengeParametersOpen}>
                 <div className="space-y-4">
                   <CollapsibleTrigger asChild>
                     <Button type="button" variant="outline" className="flex w-full items-center justify-between p-4 hover:bg-muted/50">
-                      <h3 className="text-lg font-medium">Challenge & Hedge Presets</h3>
+                      <h3 className="text-lg font-medium">Challenge & Strategy Presets</h3>
                       <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isChallengeParametersOpen ? "rotate-180" : ""}`} />
                     </Button>
                   </CollapsibleTrigger>
@@ -470,13 +470,13 @@ export function SimulationForm({
                         </FormItem>
                       )}/>
 
-                      <FormField control={form.control} name="hedgePreset" render={({ field }) => (
+                      <FormField control={form.control} name="strategyPreset" render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Hedge Preset</FormLabel>
+                          <FormLabel>Strategy Preset</FormLabel>
                           <FormControl>
                             <Select value={field.value} onValueChange={field.onChange}>
                               <SelectTrigger className="w-full md:w-[250px]">
-                                <SelectValue placeholder="Select hedge preset" />
+                                <SelectValue placeholder="Select strategy preset" />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="default">Default</SelectItem>

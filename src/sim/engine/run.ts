@@ -1,12 +1,12 @@
 import { toDec } from "../constants";
 import type { SimulationParams, SimulationResult } from "../types";
-import { getChallenge, getHedge } from "../registry";
+import { getChallenge, getStrategy } from "../registry";
 import { runSimulation as runLegacy } from "./simulation"; // your existing orchestrator (params mode)
 
 /** New: strongly-typed entry using domain objects */
 export function runWithChallenge(opts: {
   challengeId: string;                 // "fast_regular" | "super_plus" | custom
-  hedgeId?: string;                    // "default" | "new4" | custom
+  strategyId?: string;                    // "default" | "new4" | custom
   outcomeStrategy?: import("../contracts").TradeOutcomeStrategy;
   clientsNumber: number;
   tradesPerClient: number;
@@ -17,7 +17,7 @@ export function runWithChallenge(opts: {
 }): SimulationResult {
   const {
     challengeId,
-    hedgeId,
+    strategyId,
     outcomeStrategy = "geometric_distance",
     clientsNumber,
     tradesPerClient,
@@ -28,7 +28,7 @@ export function runWithChallenge(opts: {
   } = opts;
 
   const ch = getChallenge(challengeId);
-  const hedge = getHedge(hedgeId);
+  const strategy = getStrategy(strategyId);
 
   // Let the challenge dictate risk, levels, payout, economics
   const ib = toDec(initialBalance);
@@ -52,8 +52,8 @@ export function runWithChallenge(opts: {
     maxLossRatio: risk.maxLossRatio.toNumber(),
     dailyLossRatio: risk.dailyLossRatio.toNumber(),
     targetProfitRatio: risk.targetProfitRatio.toNumber(),
-    // Pass hedge preset name so the engine uses it; it already handles "new4"
-    strategy: hedge.id,
+    // Pass strategy preset name so the engine uses it; it already handles "new4"
+    strategy: strategy.id,
   };
 
   // Note: to fully migrate, you can thread payout policy hooks into phases.

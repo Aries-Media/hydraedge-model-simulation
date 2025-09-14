@@ -1,9 +1,9 @@
 // src/sim/registry.ts
 import { toDec } from "./constants";
-import type { Challenge, HedgeStrategy } from "./contracts";
+import type { Challenge, Strategy } from "./contracts";
 import { FastRegular } from "./challenges/fastRegular";
 import { SuperPlus } from "./challenges/superPlus";
-import { DefaultHedge, New4Hedge } from "./strategies/hedgePresets";
+import { DefaultStrategy, New4Strategy } from "./strategies/strategyPresets";
 import type { LevelRule } from "./types";
 
 const challenges: Record<string, Challenge> = {
@@ -11,9 +11,9 @@ const challenges: Record<string, Challenge> = {
   super_plus: SuperPlus,
 };
 
-const hedges: Record<string, HedgeStrategy> = {
-  default: DefaultHedge,
-  new4: New4Hedge,
+const strategies: Record<string, Strategy> = {
+  default: DefaultStrategy,
+  new4: New4Strategy,
 };
 
 export function getChallenge(id: string): Challenge {
@@ -22,16 +22,16 @@ export function getChallenge(id: string): Challenge {
   return c;
 }
 
-export function getHedge(id?: string): HedgeStrategy {
-  if (!id) return DefaultHedge;
-  const h = hedges[id];
-  if (!h) throw new Error(`Unknown hedge strategy '${id}'`);
-  return h;
+export function getStrategy(id?: string): Strategy {
+  if (!id) return DefaultStrategy;
+  const s = strategies[id];
+  if (!s) throw new Error(`Unknown strategy '${id}'`);
+  return s;
 }
 
 // allow external registration without touching core
 export const registerChallenge = (c: Challenge) => (challenges[c.id] = c);
-export const registerHedge = (h: HedgeStrategy) => (hedges[h.id] = h);
+export const registerStrategy = (s: Strategy) => (strategies[s.id] = s);
 
 
 export function snapshotChallenge(
@@ -64,4 +64,3 @@ export function snapshotChallenge(
     },
   };
 }
-

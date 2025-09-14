@@ -15,7 +15,7 @@ const realLevels = (ib: D): LevelRule[] => ([
 
 export const FastRegular: Challenge = {
   id: "fast_regular",
-  meta: { recommendedHedgeId: "default", label: "Fast Regular" },
+  meta: { recommendedStrategyId: "default", label: "Fast Regular" },
   risk(initialBalance: D): RiskProfile {
     return {
       maxLossRatio: toDec(0.07),
