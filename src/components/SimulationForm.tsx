@@ -379,7 +379,7 @@ export function SimulationForm({
                   </CollapsibleTrigger>
 
                   <CollapsibleContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       {!hideClientsField && (
                         <FormField control={form.control} name="clientsNumber" render={({ field }) => (
                           <FormItem className="flex-1 min-w-[200px]">
@@ -398,23 +398,6 @@ export function SimulationForm({
                           </FormItem>
                         )}/>
                       )}
-                    </div>
-
-                    <div className="flex flex-wrap gap-4">
-                      <FormField control={form.control} name="burnWonChallenges" render={({ field }) => (
-                        <FormItem className="flex-1 min-w-[200px]">
-                          <FormLabel>Burn Won Challenges</FormLabel>
-                          <FormControl>
-                            <div className="flex items-center space-x-2">
-                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                              <span className="text-sm">{field.value ? "Enabled" : "Disabled"}</span>
-                            </div>
-                          </FormControl>
-                          <FormDescription>Stop at eval win or continue to real</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}/>
-
                       <FormField control={form.control} name="tradeOutcomeStrategy" render={({ field }) => (
                         <FormItem className="flex-1 min-w-[200px]">
                           <FormLabel>Trade Outcome Strategy</FormLabel>
@@ -430,6 +413,22 @@ export function SimulationForm({
                               </SelectContent>
                             </Select>
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}/>
+                    </div>
+
+                    <div className="flex flex-wrap gap-4">
+                      <FormField control={form.control} name="burnWonChallenges" render={({ field }) => (
+                        <FormItem className="flex-1 min-w-[200px]">
+                          <FormLabel>Burn Won Challenges</FormLabel>
+                          <FormControl>
+                            <div className="flex items-center space-x-2">
+                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                              <span className="text-sm">{field.value ? "Enabled" : "Disabled"}</span>
+                            </div>
+                          </FormControl>
+                          <FormDescription>Stop at eval win or continue to real</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}/>
