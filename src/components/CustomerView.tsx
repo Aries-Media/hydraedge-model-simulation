@@ -148,7 +148,7 @@ export function CustomerView() {
                   />
                 </div>
               </div>
-              <Button onClick={handleSimulation} className="w-full" disabled={isLoading}>
+              <Button onClick={handleSimulation} className="w-full bg-success hover:bg-success/90 text-success-foreground" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
