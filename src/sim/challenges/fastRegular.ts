@@ -1,15 +1,14 @@
-// src/sim/challenges/fastRegular.ts
-import { toDec } from "../constants";
+import { toDec, scaleFactor, MAX_CHALLENGE_SIZE } from "../constants";
 import type { Challenge, RiskProfile, LevelProvider, PayoutPolicy } from "../contracts";
 import type { D, LevelRule } from "../types";
 
 const evalLevels = (ib: D): LevelRule[] => ([
-  { maxBalance: toDec(200000), sl: toDec(8200), tp: toDec(5000) },
+  { maxBalance: toDec(MAX_CHALLENGE_SIZE), sl: toDec(8200), tp: toDec(5000) },
   { maxBalance: toDec(223000), sl: toDec(6000), tp: toDec(5000) },
   { maxBalance: toDec(228000), sl: toDec(6000), tp: undefined },
 ]);
 const realLevels = (ib: D): LevelRule[] => ([
-  { maxBalance: toDec(200000), sl: toDec(7000), tp: toDec(2000) },
+  { maxBalance: toDec(MAX_CHALLENGE_SIZE), sl: toDec(7000), tp: toDec(2000) },
   { maxBalance: toDec(223000), sl: toDec(7000), tp: toDec(2000) },
 ]);
 
@@ -25,11 +24,11 @@ export const FastRegular: Challenge = {
   },
   economics(initialBalance: D) {
     /** keep your scaling: 900 fee on 200k scaled linearly, seed 6k scaled */
-    const scale = initialBalance.div(200000);
+    const scale = scaleFactor(initialBalance);
     return {
       challengeCost: toDec(900).times(scale),
       tradeLots: toDec(8).times(scale),
-      brokerSeed: toDec(6000).times(scale),
+      brokerSeed: toDec(6000).times(scale).greaterThan(toDec(2000)) ? toDec(6000).times(scale) : toDec(2000),
     };
   },
   levels(initialBalance: D): LevelProvider {

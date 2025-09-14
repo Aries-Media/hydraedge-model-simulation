@@ -1,4 +1,3 @@
-
 import { CustomerView } from "@/components/CustomerView";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { SimulationForm } from "@/components/SimulationForm";
@@ -9,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import logoImage from "@/assets/logo.png";
 
-// NEW: import the new API surface
 import {
   type SimulationResult,
   // legacy entry is still there if you want fallback
@@ -17,7 +15,7 @@ import {
 } from "@/sim";
 import { runWithChallenge } from "@/sim/engine/run";
 import { registerChallenge } from "@/sim/registry";
-import { toDec } from "@/sim/constants";
+import { toDec, scaleFactor } from "@/sim/constants";
 import type { Challenge } from "@/sim/contracts";
 import type { LevelRule, BalanceDistribution } from "@/sim/types";
 
@@ -103,7 +101,7 @@ const Index = () => {
           },
           economics(initialBalance) {
             // keep the same scaling as the engine defaults
-            const scale = initialBalance.div(200000);
+            const scale = scaleFactor(initialBalance);
             return {
               challengeCost: toDec(900).times(scale),
               tradeLots: toDec(8).times(scale),

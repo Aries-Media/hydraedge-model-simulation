@@ -14,3 +14,6 @@ export const LOT_THRESHOLD_2 = toDec(1.12);
 export const RATIO_MARGIN_INJECT = toDec(1.12);
 export const BROKER_MARGIN_FACTOR = toDec(0.45);
 
+export const MAX_CHALLENGE_SIZE = toDec(200_000);
+
+export const scaleFactor = (initialBalance: D) => initialBalance.div(MAX_CHALLENGE_SIZE);

@@ -1,10 +1,9 @@
-// src/sim/challenges/superPlus.ts  (your "new4"/Super Plus flavor)
-import { toDec } from "../constants";
+import { toDec, scaleFactor, MAX_CHALLENGE_SIZE } from "../constants";
 import type { Challenge, RiskProfile, LevelProvider, PayoutPolicy } from "../contracts";
 import type { D, LevelRule } from "../types";
 
 const levelsNew4 = (ib: D): LevelRule[] => ([
-  { maxBalance: toDec(200000), sl: toDec(10200), tp: toDec(8000) },
+  { maxBalance: toDec(MAX_CHALLENGE_SIZE), sl: toDec(10200), tp: toDec(8000) },
   { maxBalance: toDec(208000), sl: toDec(10400), tp: toDec(7800) },
   { maxBalance: toDec(215800), sl: toDec(10800), tp: toDec(7800) },
   { maxBalance: toDec(223600), sl: toDec(11200), tp: toDec(7800) },
@@ -22,11 +21,11 @@ export const SuperPlus: Challenge = {
     };
   },
   economics(initialBalance: D) {
-    const scale = initialBalance.div(200000);
+    const scale = scaleFactor(initialBalance);
     return {
       challengeCost: toDec(900).times(scale),
-      tradeLots: toDec(8).times(scale),
-      brokerSeed: toDec(6000).times(scale),
+      tradeLots: toDec(6).times(scale),
+      brokerSeed: toDec(10000).times(scale).greaterThan(toDec(3000)) ? toDec(10000).times(scale) : toDec(3000),
     };
   },
   levels(initialBalance: D): LevelProvider {
@@ -41,8 +40,7 @@ export const SuperPlus: Challenge = {
       profitCyclePayoutPct: () => pct,
       onBurnedWin({ brokerSeed }) {
         // your special reimbursement for "new4": seed + half seed, no payout, refund included in "refundsCost"
-        const refund = brokerSeed.plus(brokerSeed.div(2));
-        return { refund, payout: toDec(0), brokerReimb: toDec(0) };
+        return { refund: brokerSeed, payout: toDec(0), brokerReimb: toDec(0) };
       },
     };
   },

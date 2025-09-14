@@ -1,5 +1,4 @@
-// src/sim/registry.ts
-import { toDec } from "./constants";
+import { toDec, MAX_CHALLENGE_SIZE } from "./constants";
 import type { Challenge, Strategy } from "./contracts";
 import { FastRegular } from "./challenges/fastRegular";
 import { SuperPlus } from "./challenges/superPlus";
@@ -36,7 +35,7 @@ export const registerStrategy = (s: Strategy) => (strategies[s.id] = s);
 
 export function snapshotChallenge(
   challengeId: string,
-  initialBalance = 200_000
+  initialBalance = MAX_CHALLENGE_SIZE
 ) {
   const ch: Challenge = getChallenge(challengeId);
   const ib = toDec(initialBalance);

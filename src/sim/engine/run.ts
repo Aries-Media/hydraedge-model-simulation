@@ -1,4 +1,4 @@
-import { toDec } from "../constants";
+import { toDec, MAX_CHALLENGE_SIZE } from "../constants";
 import type { SimulationParams, SimulationResult } from "../types";
 import { getChallenge, getStrategy } from "../registry";
 import { runSimulation as runLegacy } from "./simulation"; // your existing orchestrator (params mode)
@@ -22,7 +22,7 @@ export function runWithChallenge(opts: {
     clientsNumber,
     tradesPerClient,
     commissionPerTrade = 10,
-    initialBalance = 200000,
+    initialBalance = MAX_CHALLENGE_SIZE,
     balanceDistribution,
     burnWonChallenges = true,
   } = opts;

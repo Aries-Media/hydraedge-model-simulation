@@ -1,5 +1,5 @@
-import type { SimulationParams, SimulationResult, D, BalanceDistribution } from "../types";
-import { toDec, BROKER_MARGIN_FACTOR } from "../constants";
+import type { SimulationParams, SimulationResult, BalanceDistribution } from "../types";
+import { toDec, scaleFactor, MAX_CHALLENGE_SIZE, BROKER_MARGIN_FACTOR } from "../constants";
 import { generateClientBalances } from "../lib/distribution";
 import { evaluationStep, realPhase, type EvalState, type EvalConfig } from "./phases";
 import {
@@ -18,7 +18,7 @@ export function runSimulation({
   clientsNumber,
   tradesPerClient,
   commissionPerTrade = 10,
-  initialBalance = 200_000,
+  initialBalance = MAX_CHALLENGE_SIZE,
   balanceDistribution,
   brokerStartBalance: brokerSeed,
   levels,
@@ -31,11 +31,6 @@ export function runSimulation({
   strategy,
 }: SimulationParams): SimulationResult {
   if (!levels || !realLevels) throw Error("Levels undefined cannot run simulation");
-
-  // risk params
-  const MAX_DRAWDOWN_RATIO = toDec(maxLossRatio);
-  const SINGLE_TRADE_STOP_RATIO = toDec(dailyLossRatio);
-  const PROFIT_TARGET_RATIO = toDec(targetProfitRatio);
 
   // client balances
   let clientBalances: number[];
@@ -71,13 +66,14 @@ export function runSimulation({
 
   for (let clientIndex = 0; clientIndex < clientsNumber; clientIndex++) {
     const clientInitialBalance = clientBalances[clientIndex];
-    const scaleFactor = toDec(clientInitialBalance).div(200_000);
+    const scale = scaleFactor(toDec(clientInitialBalance));
+
 
     // scaled constants per client
-    const CHALLENGE_COST = toDec(900).times(scaleFactor);
-    const TRADE_LOTS = toDec(8).times(scaleFactor);
+    const CHALLENGE_COST = toDec(900).times(scale);
+    const TRADE_LOTS = toDec(8).times(scale);
     const START = toDec(clientInitialBalance);
-    const BROKER_SEED = brokerSeed ? toDec(brokerSeed) : toDec(6_000).times(scaleFactor);
+    const BROKER_SEED = brokerSeed ? toDec(brokerSeed) : toDec(6_000).times(scale);
     const COMMISSION_PER_TRADE = toDec(commissionPerTrade);
     const PAYOUT = toDec(clientInitialBalance).times(0.02);
 
@@ -158,10 +154,10 @@ export function runSimulation({
         tradeLots: TRADE_LOTS,
         brokerSeed: BROKER_SEED,
         payout: PAYOUT,
-        scaleFactor,
-        maxDrawdownRatio: MAX_DRAWDOWN_RATIO,
-        singleTradeStopRatio: SINGLE_TRADE_STOP_RATIO,
-        profitTargetRatio: PROFIT_TARGET_RATIO,
+        scaleFactor: scale,
+        maxDrawdownRatio: toDec(maxLossRatio),
+        singleTradeStopRatio: toDec(dailyLossRatio),
+        profitTargetRatio: toDec(targetProfitRatio),
         burnWonChallenges,
         tradeOutcomeStrategy,
         strategy,
