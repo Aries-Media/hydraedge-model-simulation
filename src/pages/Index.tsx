@@ -179,7 +179,7 @@ const Index = () => {
 
         <Tabs defaultValue="single" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="single">{t("singleSimulation")}</TabsTrigger>
+            <TabsTrigger value="single">Simulator</TabsTrigger>
             <TabsTrigger value="customer">{t("customerView")}</TabsTrigger>
           </TabsList>
 
