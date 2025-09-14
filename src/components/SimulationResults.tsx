@@ -27,7 +27,7 @@ export function SimulationResults({
 
   // Column visibility state
   const [columnVisibility, setColumnVisibility] = useState({
-    timestamp: true,
+    timestamp: false,
     clients: true,
     customerProfit: true,
     challengesBought: true,
