@@ -172,7 +172,7 @@ export function SimulationResults({
                         </TableCell>
                       )}
                       {columnVisibility.customerProfit && (
-                        <TableCell className={`text-right ${result.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <TableCell className={`text-right ${result.netProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
                           ${result.netProfit.toFixed(0)}
                         </TableCell>
                       )}
@@ -197,22 +197,22 @@ export function SimulationResults({
                         </TableCell>
                       )}
                       {columnVisibility.payoutsCost && (
-                        <TableCell className="text-right">
+                        <TableCell className="text-right text-warning">
                           ${result.payoutsCost.toFixed(0)}
                         </TableCell>
                       )}
                       {columnVisibility.refundsCost && (
-                        <TableCell className="text-right">
+                        <TableCell className="text-right text-warning">
                           ${result.refundsCost.toFixed(0)}
                         </TableCell>
                       )}
                       {columnVisibility.reimburseBrokerLoss && (
-                        <TableCell className="text-right">
+                        <TableCell className="text-right text-warning">
                           ${result.reimburseBrokerLossCost.toFixed(0)}
                         </TableCell>
                       )}
                       {columnVisibility.extractedBrokerProfit && (
-                        <TableCell className="text-right">
+                        <TableCell className="text-right text-success">
                           ${result.extractedBrokerProfit.toFixed(0)}
                         </TableCell>
                       )}
