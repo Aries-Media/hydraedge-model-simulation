@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2, Eye, Settings2 } from "lucide-react";
-import { SimulationResult } from "@/utils/simulation";
+import { SimulationResult } from "@/sim";
 import { TradeHistoryModal } from "@/components/TradeHistoryModal";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";

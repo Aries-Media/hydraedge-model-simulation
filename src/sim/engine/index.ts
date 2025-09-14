@@ -1,4 +1,4 @@
-export * from "./types";
-export * from "./constants";
-export { runSimulation, runSimulationAndDisplay } from "./engine/simulation";
+export * from "../types";
+export * from "../constants";
+export { runSimulation, runSimulationAndDisplay } from "./simulation";
 

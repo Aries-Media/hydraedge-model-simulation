@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Trash2, Eye } from "lucide-react";
-import { SimulationResult } from "@/utils/simulation";
+import { SimulationResult } from "@/sim";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CustomerResultsProps {

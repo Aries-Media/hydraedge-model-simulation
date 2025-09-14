@@ -1,4 +1,4 @@
-import { BatchSimulation } from "@/components/BatchSimulation";
+
 import { CustomerView } from "@/components/CustomerView";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { SimulationForm } from "@/components/SimulationForm";
@@ -173,9 +173,8 @@ const Index = () => {
         </div>
 
         <Tabs defaultValue="single" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="single">{t("singleSimulation")}</TabsTrigger>
-            <TabsTrigger value="batch">{t("batchSimulations")}</TabsTrigger>
             <TabsTrigger value="customer">{t("customerView")}</TabsTrigger>
           </TabsList>
 
@@ -186,9 +185,6 @@ const Index = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="batch">
-            <BatchSimulation />
-          </TabsContent>
 
           <TabsContent value="customer" className="space-y-8">
             <CustomerView />

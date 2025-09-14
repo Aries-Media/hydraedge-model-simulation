@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { SimulationResult } from "@/utils/simulation";
+import { SimulationResult } from "@/sim";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MultiLicenseResultsProps {
