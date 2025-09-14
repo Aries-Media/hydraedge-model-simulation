@@ -101,6 +101,7 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
     sl = calculateBurnSL(state.propBalance, START, MAX_DRAWDOWN_RATIO);
   }
 
+  // FIXME: must be calculated properly
   const coeff = strategyCoeff(state.propBalance, START, strategy);
   const outcome = pickOutcome(sl, tp, tradeOutcomeStrategy);
 
@@ -191,7 +192,8 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
       if (cfg.strategy === "new4") {
         // special-case: 4+ sequential TPs => do not count as paid challenge in the caller
         const reimbursement = BROKER_SEED.plus(BROKER_SEED.div(2));
-        state.customerProfit = state.customerProfit.plus(reimbursement);
+        // FIXME: not sure customer profit should be increased when reimbusrement is received
+        // state.customerProfit = state.customerProfit.plus(reimbursement);
         state.propProfit = state.propProfit.minus(reimbursement);
         state.refundsCost = state.refundsCost.plus(reimbursement);
 

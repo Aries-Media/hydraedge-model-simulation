@@ -70,11 +70,14 @@ export function runSimulation({
 
 
     // scaled constants per client
+    // FIXME: should not be hardcoded
     const CHALLENGE_COST = toDec(900).times(scale);
+    // FIXME: should not be hardcoded
     const TRADE_LOTS = toDec(8).times(scale);
     const START = toDec(clientInitialBalance);
     const BROKER_SEED = brokerSeed ? toDec(brokerSeed) : toDec(6_000).times(scale);
     const COMMISSION_PER_TRADE = toDec(commissionPerTrade);
+    // FIXME: should not be fixed
     const PAYOUT = toDec(clientInitialBalance).times(0.02);
 
     // per-client accumulators
@@ -199,7 +202,7 @@ export function runSimulation({
         if (burnWonChallenges) {
           // Handle "new4" exception: do not count as bought if 4+ TPs streak
           if (strategy === "new4" && sequentialTPs >= 4) {
-            challengesBought--; // undo
+            // challengesBought--; // undo
             clientTotalAmountSpent = clientTotalAmountSpent.minus(CHALLENGE_COST);
             propProfit = propProfit.minus(CHALLENGE_COST);
           }

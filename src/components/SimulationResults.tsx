@@ -31,6 +31,7 @@ export function SimulationResults({
     clients: true,
     customerProfit: true,
     challengesBought: true,
+    challengesLost: true,
     challengesWon: true,
     totalPropProfit: true,
     avgPropProfit: true,
@@ -50,6 +51,7 @@ export function SimulationResults({
     { key: 'clients', label: '# Clients' },
     { key: 'customerProfit', label: 'Customer Profit' },
     { key: 'challengesBought', label: 'Challenges Bought' },
+    { key: 'challengesLost', label: 'Challenges Lost' },
     { key: 'challengesWon', label: 'Challenges Won' },
     { key: 'totalPropProfit', label: 'Total Prop Profit' },
     { key: 'avgPropProfit', label: 'Avg Prop Profit' },
@@ -136,8 +138,9 @@ export function SimulationResults({
                 <TableRow>
                   {columnVisibility.timestamp && <TableHead className="min-w-[140px]">Timestamp</TableHead>}
                   {columnVisibility.clients && <TableHead className="text-center min-w-[100px]"># Clients</TableHead>}
-                  {columnVisibility.customerProfit && <TableHead className="text-right min-w-[100px]">Customer Profit</TableHead>}
+                  {columnVisibility.customerProfit && <TableHead className="text-right min-w-[100px]">Customer Net Profit</TableHead>}
                   {columnVisibility.challengesBought && <TableHead className="text-right min-w-[120px]">Challenges Bought</TableHead>}
+                  {columnVisibility.challengesLost && <TableHead className="text-right min-w-[120px]">Challenges Lost</TableHead>}
                   {columnVisibility.challengesWon && <TableHead className="text-right min-w-[120px]">Challenges Won</TableHead>}
                   {columnVisibility.totalPropProfit && <TableHead className="text-right min-w-[120px]">Total Prop Profit</TableHead>}
                   {columnVisibility.avgPropProfit && <TableHead className="text-right min-w-[120px]">Avg Prop Profit</TableHead>}
@@ -179,6 +182,11 @@ export function SimulationResults({
                       {columnVisibility.challengesBought && (
                         <TableCell className="text-right">
                           {result.challengesBought.toFixed(1)}
+                        </TableCell>
+                      )}
+                      {columnVisibility.challengesLost && (
+                        <TableCell className="text-right">
+                          {result.challengesLost.toFixed(1)}
                         </TableCell>
                       )}
                       {columnVisibility.challengesWon && (
