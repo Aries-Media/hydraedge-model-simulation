@@ -9,7 +9,7 @@ import { CustomerResults } from "@/components/CustomerResults";
 import { MultiLicenseResults } from "@/components/MultiLicenseResults";
 import { TradeHistoryModal } from "@/components/TradeHistoryModal";
 import { useToast } from "@/hooks/use-toast";
-import { SimulationResult, runSimulation } from "@/utils/simulation";
+import { SimulationResult, runSimulation } from "@/sim";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Decimal from "decimal.js";
 

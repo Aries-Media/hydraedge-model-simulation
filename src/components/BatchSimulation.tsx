@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { SimulationResult, runSimulationAndDisplay } from "@/utils/simulation";
+import { SimulationResult, runSimulationAndDisplay } from "@/sim";
 import { SimulationResults } from "@/components/SimulationResults";
 import { SimulationForm } from "@/components/SimulationForm";
 import { Loader2 } from "lucide-react";
