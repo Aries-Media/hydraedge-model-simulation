@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import logoImage from "@/assets/logo.png";
 
 // NEW: import the new API surface
 import {
@@ -166,9 +167,13 @@ const Index = () => {
     <div className="min-h-screen bg-background p-6">
       <div className="container mx-auto space-y-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold tracking-tight">
-            Hydraedge Model Simulation
-          </h1>
+          <div className="flex items-center gap-4">
+            <img 
+              src={logoImage} 
+              alt="A Caccia di Trader" 
+              className="h-16 w-auto"
+            />
+          </div>
           <LanguageSelector />
         </div>
 

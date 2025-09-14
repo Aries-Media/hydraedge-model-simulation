@@ -37,7 +37,9 @@
 
     --border: 217 19% 25%;
     --input: 217 19% 25%;
-    --ring: 195 100% 60%;
+    /* Focus states */
+    --focus: 160 84% 39%;
+    --focus-ring: 160 84% 39% / 0.2;
 
     --radius: 0.75rem;
 
@@ -86,6 +88,10 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 195 100% 60%;
 
+    /* Focus states */
+    --focus: 160 84% 39%;
+    --focus-ring: 160 84% 39% / 0.2;
+
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 195 100% 60%;
@@ -104,5 +110,13 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Focus states for form elements */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  [role="combobox"]:focus-visible {
+    @apply ring-2 ring-accent ring-offset-2 ring-offset-background outline-none;
   }
 }
