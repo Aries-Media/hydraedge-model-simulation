@@ -760,7 +760,7 @@ export function SimulationForm({
             </div>
 
             {showSubmitButton && (
-              <Button type="submit" className="w-full bg-black hover:bg-gray-800 text-white" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-success hover:bg-success/90 text-success-foreground" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
