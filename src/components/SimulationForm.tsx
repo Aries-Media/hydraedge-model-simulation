@@ -40,7 +40,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, Loader2, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
-import { toDec } from "@/sim/constants";
 import * as z from "zod";
 
 // UI-only presets to quickly fill level arrays when "custom" is selected
@@ -241,7 +240,7 @@ export function SimulationForm({
   const presetSnapshot = useMemo(() => {
     if (isCustom) return null;
     try {
-      return snapshotChallenge(challengePreset, toDec(200000)); // same balance your sim assumes
+      return snapshotChallenge(challengePreset, 200000); // same balance your sim assumes
     } catch {
       return null;
     }
@@ -251,7 +250,7 @@ export function SimulationForm({
   const lastPresetRef = useRef<string | null>(null);
   useEffect(() => {
     if (isCustom && lastPresetRef.current !== "custom") {
-      const snap = snapshotChallenge(lastPresetRef.current ?? "fast_regular", toDec(200000));
+      const snap = snapshotChallenge(lastPresetRef.current ?? "fast_regular", 200000);
       form.setValue("maxLossRatio", fmtPct(snap.riskPercent.maxLoss));
       form.setValue("dailyLossRatio", fmtPct(snap.riskPercent.dailyLoss));
       form.setValue("targetProfitRatio", fmtPct(snap.riskPercent.targetProfit));

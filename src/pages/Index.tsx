@@ -109,9 +109,6 @@ const Index = () => {
               getRealLevels: () => realLevels,
             };
           },
-          brokerCoeff(bal, initialBalance, real = false) {
-            return toDec(0.2); // default coefficient
-          },
           payoutPolicy(initialBalance) {
             // identical to default burn behavior: refund challengeCost + broker reimb, no payout
             const pct = toDec(0.02);

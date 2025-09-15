@@ -13,7 +13,7 @@ const levelsNew4 = (initialBalance: D, scale: D): LevelRule[] => scaleLevels([
 
 export const SuperPlus: Challenge = {
   id: "super_plus",
-  meta: { recommendedStrategyId: "new4", label: "Four Points" },
+  meta: { recommendedStrategyId: "new4", label: "Super Plus" },
   risk(): RiskProfile {
     return {
       maxLossRatio: toDec(0.07),

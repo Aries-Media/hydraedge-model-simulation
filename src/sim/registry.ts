@@ -40,7 +40,7 @@ export function snapshotChallenge(
   const ch: Challenge = getChallenge(challengeId);
   const ib = toDec(initialBalance);
 
-  const risk = ch.risk();
+  const risk = ch.risk(ib);
   const lvl = ch.levels(ib);
   const econ = ch.economics(ib);
 
