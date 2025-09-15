@@ -1,4 +1,3 @@
-import D from "decimal.js";
 import type { Strategy } from "../contracts";
 import { toDec } from "../constants";
 

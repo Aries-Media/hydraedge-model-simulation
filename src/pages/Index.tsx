@@ -10,8 +10,6 @@ import logoImage from "@/assets/logo.png";
 
 import {
   type SimulationResult,
-  // legacy entry is still there if you want fallback
-  // runSimulationAndDisplay,
 } from "@/sim";
 import { runWithChallenge } from "@/sim/engine/run";
 import { registerChallenge } from "@/sim/registry";

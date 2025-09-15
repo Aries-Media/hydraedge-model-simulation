@@ -37,6 +37,16 @@ export const FastRegular: Challenge = {
       getRealLevels: () => realLevels(initialBalance),
     };
   },
+  brokerCoeff(bal: D, initialBalance: D): D {
+    const range = start.div(7).minus(start.div(10));
+    const pointInRange = bal.minus(start.div(10));
+    const percent = pointInRange.div(range);
+
+    if (percent.gte(1)) return toDec(3);
+    if (percent.lte(0)) return toDec(0.3);
+
+    return toDec(0.3).plus(percent.times(2.7));
+  },
   payoutPolicy(initialBalance: D): PayoutPolicy {
     const pct = toDec(0.02);
     return {

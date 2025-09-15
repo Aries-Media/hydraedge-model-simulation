@@ -150,12 +150,7 @@ export function TradeHistoryModal({
                             <div><span className="font-medium">Trades:</span> {challenge.trades?.length ?? 0}</div>
                           </div>
 
-                          {/* Financial Summary */}
-                          {(challenge.payout ||
-                            challenge.refund ||
-                            challenge.brokerReimbursement ||
-                            challenge.extractedBrokerProfit) && (
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 text-sm bg-muted/50 p-3 rounded">
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 text-sm bg-muted/50 p-3 rounded">
                               {challenge.payout ? (
                                 <div><span className="font-medium">Payout:</span> {fmtMoney(challenge.payout)}</div>
                               ) : null}
@@ -169,7 +164,6 @@ export function TradeHistoryModal({
                                 <div><span className="font-medium">Extracted Profit:</span> {fmtMoney(challenge.extractedBrokerProfit)}</div>
                               ) : null}
                             </div>
-                          )}
 
                           {/* Trades Table */}
                           {open && (

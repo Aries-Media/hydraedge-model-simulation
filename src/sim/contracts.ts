@@ -39,6 +39,7 @@ export interface Challenge {
     challengeCost: D; tradeLots: D; brokerSeed: D;
   };
   levels(initialBalance: D): LevelProvider;
+  brokerCoeff(bal: D, initialBalance: D): D;
   payoutPolicy(initialBalance: D): PayoutPolicy;
 }
 

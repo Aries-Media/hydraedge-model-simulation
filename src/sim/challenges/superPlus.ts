@@ -1,13 +1,21 @@
-import { toDec, scaleFactor, MAX_CHALLENGE_SIZE } from "../constants";
+import { toDec, scaleFactor } from "../constants";
 import type { Challenge, RiskProfile, LevelProvider, PayoutPolicy } from "../contracts";
 import type { D, LevelRule } from "../types";
 
-const levelsNew4 = (ib: D): LevelRule[] => ([
-  { maxBalance: toDec(MAX_CHALLENGE_SIZE), sl: toDec(10200), tp: toDec(8000) },
-  { maxBalance: toDec(208000), sl: toDec(10400), tp: toDec(7800) },
-  { maxBalance: toDec(215800), sl: toDec(10800), tp: toDec(7800) },
-  { maxBalance: toDec(223600), sl: toDec(11200), tp: toDec(7800) },
-  { maxBalance: toDec(230000), sl: toDec(11200), tp: undefined },
+// const levelsNew4 = (initialBalance: D): LevelRule[] => ([
+//   { maxBalance: toDec(initialBalance), sl: toDec(10400), tp: toDec(8000) },
+//   { maxBalance: toDec(208000), sl: toDec(10600), tp: toDec(7500) },
+//   { maxBalance: toDec(215800), sl: toDec(10800), tp: toDec(7500) },
+//   { maxBalance: toDec(223600), sl: toDec(11200), tp: toDec(7800) },
+//   { maxBalance: toDec(230000), sl: toDec(11600), tp: undefined },
+// ]);
+
+const levelsNew4 = (initialBalance: D): LevelRule[] => ([
+  { maxBalance: toDec(initialBalance), sl: toDec(10400), tp: toDec(8000) },
+  { maxBalance: toDec(208000), sl: toDec(10600), tp: toDec(7500) },
+  { maxBalance: toDec(215800), sl: toDec(10800), tp: toDec(7500) },
+  { maxBalance: toDec(223600), sl: toDec(11200), tp: toDec(7000) },
+  { maxBalance: toDec(230000), sl: toDec(11600), tp: undefined },
 ]);
 
 export const SuperPlus: Challenge = {
@@ -34,10 +42,17 @@ export const SuperPlus: Challenge = {
       getRealLevels: () => [], // your preset had empty real levels
     };
   },
+  brokerCoeff(bal: D, initialBalance: D): D {
+    const coeffs = [0.15, 0.25, 0.4, 0.6].map(c => toDec(c));
+    const levels = this.levels(initialBalance).getEvaluationLevels();
+    const index = levels.findIndex(level => bal.lte(level.maxBalance));
+    const coeff = coeffs[index >= 0 ? index : coeffs.length - 1];
+    console.log("COEFF FOR BALANCE", Number(bal), ":", Number(coeff))
+    return coeff;
+  },
   payoutPolicy(initialBalance: D): PayoutPolicy {
-    const pct = toDec(0.02);
     return {
-      profitCyclePayoutPct: () => pct,
+      profitCyclePayoutPct: () => null,
       onBurnedWin({ brokerSeed }) {
         // your special reimbursement for "new4": seed + half seed, no payout, refund included in "refundsCost"
         return { refund: brokerSeed, payout: toDec(0), brokerReimb: toDec(0) };

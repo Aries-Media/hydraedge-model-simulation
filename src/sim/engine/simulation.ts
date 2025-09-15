@@ -9,11 +9,6 @@ import {
 
 import type { SimulationTradeHistory } from "@/types/tradeHistory";
 
-/* Convenience wrapper that runs a single simulation regardless of client count. */
-export function runSimulationAndDisplay(params: SimulationParams): SimulationResult {
-  return runSimulation(params);
-}
-
 function pushClosedChallenge(
   shouldTrack: boolean,
   history: SimulationTradeHistory | undefined,
@@ -32,19 +27,21 @@ export function runSimulation({
   clientsNumber,
   tradesPerClient,
   commissionPerTrade = 10,
+  challenge,
   initialBalance = MAX_CHALLENGE_SIZE,
   balanceDistribution,
-  brokerStartBalance: brokerSeed,
-  levels,
-  realLevels,
   burnWonChallenges = true,
-  tradeOutcomeStrategy = "geometric_distance",
-  maxLossRatio = 0.07,
-  dailyLossRatio = 0.04,
-  targetProfitRatio = 0.14,
+  tradeOutcomeStrategy = "logarithmic_distance",
   strategy,
 }: SimulationParams): SimulationResult {
+
+  const lvl = challenge.levels(initialBalance);
+  const levels = lvl.getEvaluationLevels(initialBalance);
+  const realLevels = lvl.getRealLevels(initialBalance);
   if (!levels || !realLevels) throw Error("Levels undefined cannot run simulation");
+
+  const { challengeCost, tradeLots, brokerSeed } = challenge.economics(initialBalance);
+  const { maxLossRatio, dailyLossRatio, targetProfitRatio } = challenge.risk(initialBalance);
 
   // client balances
   let clientBalances: number[];
@@ -84,10 +81,8 @@ export function runSimulation({
 
 
     // scaled constants per client
-    // FIXME: should not be hardcoded
-    const CHALLENGE_COST = toDec(900).times(scale);
-    // FIXME: should not be hardcoded
-    const TRADE_LOTS = toDec(8).times(scale);
+    const CHALLENGE_COST = toDec(challengeCost).times(scale);
+    const TRADE_LOTS = toDec(tradeLots).times(scale);
     const START = toDec(clientInitialBalance);
     const BROKER_SEED = brokerSeed ? toDec(brokerSeed) : toDec(6_000).times(scale);
     const COMMISSION_PER_TRADE = toDec(commissionPerTrade);
@@ -166,6 +161,7 @@ export function runSimulation({
       };
 
       const cfg: EvalConfig = {
+        challenge,
         start: START,
         commissionPerTrade: COMMISSION_PER_TRADE,
         tradeLots: TRADE_LOTS,
@@ -205,6 +201,7 @@ export function runSimulation({
         currentChallenge,
         challengeOngoing,
       } = res.state);
+
 
       if (res.kind === "lost") {
         challengesLost++;

@@ -27,31 +27,26 @@ export function runWithChallenge(opts: {
     burnWonChallenges = true,
   } = opts;
 
-  const ch = getChallenge(challengeId);
+  const challenge = getChallenge(challengeId);
   const strategy = getStrategy(strategyId);
 
   // Let the challenge dictate risk, levels, payout, economics
-  const ib = toDec(initialBalance);
-  const risk = ch.risk(ib);
-  const econ = ch.economics(ib);
-  const lvl = ch.levels(ib);
-  const payout = ch.payoutPolicy(ib);
+  // const ib = toDec(initialBalance);
+  // const risk = challenge.risk(ib);
+  // const econ = ch.economics(ib);
+  // const lvl = ch.levels(ib);
+  // const payout = ch.payoutPolicy(ib);
 
   // Adapt into the legacy params so we reuse your tested engine
   const params: SimulationParams = {
     clientsNumber,
     tradesPerClient,
     commissionPerTrade,
-    initialBalance,
+    challenge,
+    initialBalance: toDec(initialBalance),
     balanceDistribution,
-    brokerStartBalance: econ.brokerSeed,
-    levels: lvl.getEvaluationLevels(ib),
-    realLevels: lvl.getRealLevels(ib),
     burnWonChallenges,
     tradeOutcomeStrategy: outcomeStrategy,
-    maxLossRatio: risk.maxLossRatio.toNumber(),
-    dailyLossRatio: risk.dailyLossRatio.toNumber(),
-    targetProfitRatio: risk.targetProfitRatio.toNumber(),
     // Pass strategy preset name so the engine uses it; it already handles "new4"
     strategy: strategy.id,
   };

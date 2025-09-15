@@ -3,11 +3,11 @@ import {
   BROKER_MARGIN_FACTOR,
   REAL_PHASE_PROFIT_RATIO,
   RATIO_MARGIN_INJECT,
-  toDec,
+  toDec
 } from "../constants";
+import { Challenge } from "../contracts";
 import { makePicker } from "../lib/levels";
 import { calculateBurnSL } from "../lib/risk";
-import { strategyCoeff } from "../strategies/strategy";
 import { pickOutcome, type TradeOutcomeStrategy } from "../strategies/outcome";
 import {
   logTrade,
@@ -22,6 +22,7 @@ export type EvaluationStepResult =
   | { kind: "won"; state: EvalState };
 
 export interface EvalConfig {
+  challenge: Challenge;
   start: D;
   commissionPerTrade: D;
   tradeLots: D;
@@ -73,6 +74,7 @@ export interface EvalState {
 
 export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationStepResult {
   const {
+    challenge,
     start: START,
     commissionPerTrade: COMMISSION,
     tradeLots: TRADE_LOTS,
@@ -101,8 +103,8 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
     sl = calculateBurnSL(state.propBalance, START, MAX_DRAWDOWN_RATIO);
   }
 
-  // FIXME: must be calculated properly
-  const coeff = strategyCoeff(state.propBalance, START, strategy);
+  const coeff = challenge.brokerCoeff(state.propBalance, START) 
+  console.log("GOT IT", Number(coeff))
   const outcome = pickOutcome(sl, tp, tradeOutcomeStrategy);
 
   let brokerPL = toDec(0);
@@ -120,8 +122,7 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
     brokerPL = tp.times(coeff).neg();
   }
 
-  state.brokerBalance = state.brokerBalance.plus(brokerPL);
-  state.brokerBalance = state.brokerBalance.minus(COMMISSION);
+  state.brokerBalance = state.brokerBalance.plus(brokerPL).minus(COMMISSION);
   state.commissionCost = state.commissionCost.plus(COMMISSION);
   state.clientTotalLots = state.clientTotalLots.plus(TRADE_LOTS).times(coeff);
 
@@ -191,8 +192,8 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
 
       if (cfg.strategy === "new4") {
         // special-case: 4+ sequential TPs => do not count as paid challenge in the caller
-        const reimbursement = BROKER_SEED.plus(BROKER_SEED.div(2));
-        // FIXME: not sure customer profit should be increased when reimbusrement is received
+        const reimbursement = BROKER_SEED;
+        // FIXME: customer profit should probably not be increased when reimbursement is received
         // state.customerProfit = state.customerProfit.plus(reimbursement);
         state.propProfit = state.propProfit.minus(reimbursement);
         state.refundsCost = state.refundsCost.plus(reimbursement);

@@ -1,4 +1,5 @@
 import Decimal from "decimal.js";
+import { Challenge } from "./contracts";
 
 export type D = Decimal;
 
@@ -22,14 +23,10 @@ export interface BalanceDistribution {
 export interface SimulationParams {
   clientsNumber: number;
   tradesPerClient: number;
-
   commissionPerTrade?: D | number;
-  initialBalance?: D | number;
+  challenge: Challenge;
+  initialBalance: D;
   balanceDistribution?: BalanceDistribution[];
-  brokerStartBalance?: D | number;
-
-  levels?: LevelRule[];
-  realLevels?: LevelRule[];
   burnWonChallenges?: boolean;
   tradeOutcomeStrategy?:
     | "fifty_fifty"
@@ -37,10 +34,6 @@ export interface SimulationParams {
     | "logarithmic_distance"
     | "average"
     | "burn_after_sl";
-
-  maxLossRatio?: number;
-  dailyLossRatio?: number;
-  targetProfitRatio?: number;
   strategy?: string;
 }
 
