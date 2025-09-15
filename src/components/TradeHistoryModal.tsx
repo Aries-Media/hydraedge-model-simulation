@@ -192,7 +192,7 @@ export function TradeHistoryModal({
                                       <TableRow key={trade.tradeNumber}>
                                         <TableCell className="font-medium">#{trade.tradeNumber}</TableCell>
                                         <TableCell>
-                                          <Badge variant={trade.phase === "evaluation" ? "secondary" : "outline"}>
+                                          <Badge variant={trade.phase === "evaluation" ? "secondary" : "destructive"}>
                                             {trade.phase === "evaluation" ? "DEMO" : "REAL"}
                                           </Badge>
                                         </TableCell>

@@ -458,7 +458,7 @@ export function SimulationForm({
                                 <SelectValue placeholder="Select challenge preset" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="fast_regular">Fast Regular</SelectItem>
+                                <SelectItem value="fast_regular">Plus</SelectItem>
                                 <SelectItem value="super_plus">Super Plus</SelectItem>
                                 <SelectItem value="custom">Custom</SelectItem>
                               </SelectContent>
@@ -479,7 +479,7 @@ export function SimulationForm({
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="default">Default</SelectItem>
-                                <SelectItem value="new4">New4</SelectItem>
+                                <SelectItem value="new4">Four Points</SelectItem>
                               </SelectContent>
                             </Select>
                           </FormControl>
@@ -626,7 +626,7 @@ export function SimulationForm({
                           </SelectTrigger>
                           <SelectContent className="bg-popover z-50">
                             <SelectItem value="blank">+ Blank</SelectItem>
-                            <SelectItem value="default">Fast Regular</SelectItem>
+                            <SelectItem value="default">Plus</SelectItem>
                             <SelectItem value="original">Original</SelectItem>
                             <SelectItem value="new">New Strategy</SelectItem>
                             <SelectItem value="new4">Super Plus</SelectItem>
