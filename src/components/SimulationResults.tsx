@@ -144,12 +144,12 @@ export function SimulationResults({
                   {columnVisibility.challengesWon && <TableHead className="text-right min-w-[120px]">Challenges Won</TableHead>}
                   {columnVisibility.totalPropProfit && <TableHead className="text-right min-w-[120px]">Total Prop Profit</TableHead>}
                   {columnVisibility.avgPropProfit && <TableHead className="text-right min-w-[120px]">Avg Prop Profit</TableHead>}
-                  {columnVisibility.payoutsCost && <TableHead className="text-right min-w-[100px]">Payouts Cost</TableHead>}
                   {columnVisibility.refundsCost && <TableHead className="text-right min-w-[100px]">Refunds Cost</TableHead>}
-                  {columnVisibility.reimburseBrokerLoss && <TableHead className="text-right min-w-[140px]">Reimburse Broker Loss Cost</TableHead>}
+                  {columnVisibility.payoutsCost && <TableHead className="text-right min-w-[100px]">Payouts Cost</TableHead>}
                   {columnVisibility.extractedBrokerProfit && <TableHead className="text-right min-w-[140px]">Extracted Broker Profit</TableHead>}
-                  {columnVisibility.totalLots && <TableHead className="text-right min-w-[100px]">Total Lots</TableHead>}
                   {columnVisibility.totalAmountSpent && <TableHead className="text-right min-w-[120px]">Total Amount Spent</TableHead>}
+                  {columnVisibility.totalLots && <TableHead className="text-right min-w-[100px]">Total Lots</TableHead>}
+                  {columnVisibility.reimburseBrokerLoss && <TableHead className="text-right min-w-[140px]">Reimburse Broker Loss Cost</TableHead>}
                   {columnVisibility.burnWonChallenges && <TableHead className="text-center min-w-[120px]">Burn Won Challenges</TableHead>}
                   {columnVisibility.tradeOutputRandom && <TableHead className="text-center min-w-[120px]">Trade Output Random</TableHead>}
                   {columnVisibility.actions && <TableHead className="text-center min-w-[100px]">Actions</TableHead>}
@@ -204,19 +204,14 @@ export function SimulationResults({
                           ${result.propProfit.toFixed(0)}
                         </TableCell>
                       )}
-                      {columnVisibility.payoutsCost && (
-                        <TableCell className="text-right text-warning">
-                          ${result.payoutsCost.toFixed(0)}
-                        </TableCell>
-                      )}
                       {columnVisibility.refundsCost && (
                         <TableCell className="text-right text-warning">
                           ${result.refundsCost.toFixed(0)}
                         </TableCell>
                       )}
-                      {columnVisibility.reimburseBrokerLoss && (
+                      {columnVisibility.payoutsCost && (
                         <TableCell className="text-right text-warning">
-                          ${result.reimburseBrokerLossCost.toFixed(0)}
+                          ${result.payoutsCost.toFixed(0)}
                         </TableCell>
                       )}
                       {columnVisibility.extractedBrokerProfit && (
@@ -224,14 +219,19 @@ export function SimulationResults({
                           ${result.extractedBrokerProfit.toFixed(0)}
                         </TableCell>
                       )}
+                      {columnVisibility.totalAmountSpent && (
+                        <TableCell className="text-right">
+                          ${result.totalAmountSpent.toFixed(0)}
+                        </TableCell>
+                      )}
                       {columnVisibility.totalLots && (
                         <TableCell className="text-right">
                           {result.totalLots.toFixed(0)}
                         </TableCell>
                       )}
-                      {columnVisibility.totalAmountSpent && (
-                        <TableCell className="text-right">
-                          ${result.totalAmountSpent.toFixed(0)}
+                      {columnVisibility.reimburseBrokerLoss && (
+                        <TableCell className="text-right text-warning">
+                          ${result.reimburseBrokerLossCost.toFixed(0)}
                         </TableCell>
                       )}
                       {columnVisibility.burnWonChallenges && (

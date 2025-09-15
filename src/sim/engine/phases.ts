@@ -119,7 +119,7 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
 
   state.brokerBalance = state.brokerBalance.plus(brokerPL).minus(COMMISSION);
   state.commissionCost = state.commissionCost.plus(COMMISSION);
-  state.clientTotalLots = state.clientTotalLots.plus(TRADE_LOTS).times(coeff);
+  state.clientTotalLots = state.clientTotalLots.plus(TRADE_LOTS.times(coeff));
 
   // TP streak logic for "new4"
   if (outcome === "TP") state.sequentialTPs++;

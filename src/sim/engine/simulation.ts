@@ -61,7 +61,6 @@ export function runSimulation({
 
   for (let clientIndex = 0; clientIndex < clientsNumber; clientIndex++) {
     const initialBalance = toDec(clientBalances[clientIndex]);
-    const scale = scaleFactor(initialBalance);
 
     const lvl = challenge.levels(initialBalance);
     const levels = lvl.getEvaluationLevels();
@@ -72,10 +71,6 @@ export function runSimulation({
     const { maxLossRatio, dailyLossRatio, targetProfitRatio } = challenge.risk();
 
     // scaled constants per client
-    const CHALLENGE_COST = toDec(challengeCost).times(scale);
-    const TRADE_LOTS = toDec(tradeLots).times(scale);
-    const START = toDec(initialBalance);
-    const BROKER_SEED = brokerSeed ? toDec(brokerSeed) : toDec(6_000).times(scale);
     const COMMISSION_PER_TRADE = toDec(commissionPerTrade);
     // FIXME: should not be fixed
     const PAYOUT = toDec(initialBalance).times(0.02);
@@ -96,8 +91,8 @@ export function runSimulation({
 
     // init challenge loop
     let tradesLeft = tradesPerClient;
-    let propBalance = START;
-    let brokerBalance = BROKER_SEED;
+    let propBalance = initialBalance;
+    let brokerBalance = brokerSeed;
     let challengeOngoing = false;
     let currentChallenge = undefined as EvalState["currentChallenge"] | undefined;
 
@@ -109,18 +104,18 @@ export function runSimulation({
       if (!challengeOngoing) {
         challengesBought++;
         challengeOngoing = true;
-        clientTotalAmountSpent = clientTotalAmountSpent.plus(CHALLENGE_COST);
-        propProfit = propProfit.plus(CHALLENGE_COST);
+        clientTotalAmountSpent = clientTotalAmountSpent.plus(challengeCost);
+        propProfit = propProfit.plus(challengeCost);
 
-        propBalance = START;
-        brokerBalance = BROKER_SEED;
+        propBalance = initialBalance;
+        brokerBalance = brokerSeed;
         previousTradeOutcome = null;
         sequentialTPs = 0;
 
         currentChallenge = beginChallengeLog(shouldTrackHistory, {
           challengeNumber: challengesBought,
-          start: START,
-          brokerSeed: BROKER_SEED,
+          start: initialBalance,
+          brokerSeed: brokerSeed,
         });
       }
 
@@ -153,10 +148,10 @@ export function runSimulation({
 
       const cfg: EvalConfig = {
         challenge,
-        start: START,
+        start: initialBalance,
         commissionPerTrade: COMMISSION_PER_TRADE,
-        tradeLots: TRADE_LOTS,
-        brokerSeed: BROKER_SEED,
+        tradeLots,
+        brokerSeed,
         payout: PAYOUT,
         maxDrawdownRatio: toDec(maxLossRatio),
         singleTradeStopRatio: toDec(dailyLossRatio),
@@ -205,8 +200,8 @@ export function runSimulation({
           // Handle "new4" exception: do not count as bought if 4+ TPs streak
           if (strategy === "new4" && sequentialTPs >= 4) {
             // challengesBought--; // undo
-            clientTotalAmountSpent = clientTotalAmountSpent.minus(CHALLENGE_COST);
-            propProfit = propProfit.minus(CHALLENGE_COST);
+            clientTotalAmountSpent = clientTotalAmountSpent.minus(challengeCost);
+            propProfit = propProfit.minus(challengeCost);
           }
           challengesWon++;
           pushClosedChallenge(shouldTrackHistory, tradeHistory, res.state);
