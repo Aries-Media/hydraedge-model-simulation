@@ -5,9 +5,9 @@ import { scaleLevels } from "../lib/levels";
 
 const levelsNew4 = (initialBalance: D, scale: D): LevelRule[] => scaleLevels([
   { maxBalance: 200000, sl: 10400, tp: 8000 },
-  { maxBalance: 208000, sl: 10600, tp: 7500 },
-  { maxBalance: 215800, sl: 10800, tp: 7500 },
-  { maxBalance: 223600, sl: 11200, tp: 7000 },
+  { maxBalance: 208000, sl: 10800, tp: 7500 },
+  { maxBalance: 215800, sl: 11200, tp: 7500 },
+  { maxBalance: 223600, sl: 11600, tp: 7000 },
   { maxBalance: 230000, sl: 11600, tp: 0 },
 ], scale);
 
@@ -38,7 +38,7 @@ export const SuperPlus: Challenge = {
     };
   },
   brokerCoeff(bal: D, initialBalance: D): D {
-    const coeffs = [0.15, 0.25, 0.4, 0.6].map(c => toDec(c));
+    const coeffs = [0.15, 0.25, 0.4, 0.65].map(c => toDec(c));
     const levels = this.levels(initialBalance).getEvaluationLevels();
     const index = levels.findIndex(level => bal.lte(level.maxBalance));
     const coeff = coeffs[index >= 0 ? index : coeffs.length - 1];
