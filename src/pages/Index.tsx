@@ -122,6 +122,10 @@ const Index = () => {
               },
             };
           },
+          brokerCoeff(bal, initialBalance, real) {
+            // Default broker coefficient implementation
+            return toDec(1);
+          },
         };
 
         registerChallenge(customChallenge);
