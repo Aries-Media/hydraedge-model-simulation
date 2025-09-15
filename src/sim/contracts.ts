@@ -9,14 +9,14 @@ export interface RiskProfile {
 
 export interface LevelProvider {
   /** Evaluation phase tiers */
-  getEvaluationLevels(): LevelRule[];
+  getEvaluationLevels(bal: D): LevelRule[];
   /** Real phase tiers (may be empty) */
-  getRealLevels(): LevelRule[];
+  getRealLevels(bal: D): LevelRule[];
 }
 
 export interface PayoutPolicy {
   /** % of initial balance paid per profit cycle in real phase */
-  profitCyclePayoutPct(initialBalance: D): D; // e.g. 0.02
+  profitCyclePayoutPct(): D; // e.g. 0.02
   /** Prize/refund logic when challenge is Won in evaluation and burned */
   onBurnedWin(params: {
     brokerSeed: D;
@@ -39,7 +39,7 @@ export interface Challenge {
     challengeCost: D; tradeLots: D; brokerSeed: D;
   };
   levels(initialBalance: D): LevelProvider;
-  brokerCoeff(bal: D, initialBalance: D): D;
+  brokerCoeff(bal: D, initialBalance: D, real: boolean): D;
   payoutPolicy(initialBalance: D): PayoutPolicy;
 }
 

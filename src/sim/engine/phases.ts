@@ -35,7 +35,6 @@ export interface EvalConfig {
   tradeOutcomeStrategy: TradeOutcomeStrategy;
   strategy?: string; // custom strategy preset like "new4"
   levels: LevelRule[];
-  realLevels: LevelRule[];
   shouldTrackHistory: boolean;
 }
 
@@ -99,7 +98,7 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
     sl = calculateBurnSL(state.propBalance, START, MAX_DRAWDOWN_RATIO);
   }
 
-  const coeff = challenge.brokerCoeff(state.propBalance, START) 
+  const coeff = challenge.brokerCoeff(state.propBalance, START, false) 
   const outcome = pickOutcome(sl, tp, tradeOutcomeStrategy);
 
   let brokerPL = toDec(0);
@@ -181,6 +180,8 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
   }
 
   if (profitTargetHit) {
+    state.propBalance = START;
+
     // challenge won
     if (burnWonChallenges) {
       let brokerLossReimb = toDec(0);
@@ -188,8 +189,6 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
       if (cfg.strategy === "new4") {
         // special-case: 4+ sequential TPs => do not count as paid challenge in the caller
         const reimbursement = BROKER_SEED;
-        // FIXME: customer profit should probably not be increased when reimbursement is received
-        // state.customerProfit = state.customerProfit.plus(reimbursement);
         state.propProfit = state.propProfit.minus(reimbursement);
         state.refundsCost = state.refundsCost.plus(reimbursement);
 
@@ -243,19 +242,21 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
  * Real phase loop. Runs until trades exhausted or single stop hit.
  * Handles periodic payout cycles at +2% then reset to START.
  */
-export function realPhase(state: EvalState, cfg: Omit<EvalConfig, "levels"> & { realLevels: LevelRule[] }) {
+export function realPhase(state: EvalState, cfg: EvalConfig) {
   const {
+    challenge,
     start: START,
     commissionPerTrade: COMMISSION,
     tradeLots: TRADE_LOTS,
     brokerSeed: BROKER_SEED,
-    scaleFactor,
+    maxDrawdownRatio,
     singleTradeStopRatio: SINGLE_TRADE_STOP_RATIO,
     tradeOutcomeStrategy,
-    realLevels,
+    levels,
+    payout
   } = cfg;
 
-  const pickReal = makePicker(realLevels);
+  const pickReal = makePicker(levels);
 
   while (state.tradesLeft > 0) {
     state.tradesLeft--;
@@ -265,31 +266,30 @@ export function realPhase(state: EvalState, cfg: Omit<EvalConfig, "levels"> & { 
     state.commissionCost = state.commissionCost.plus(COMMISSION);
     state.brokerBalance = state.brokerBalance.minus(COMMISSION);
 
-    let { sl: slR, tp: tpR } = pickReal(state.propBalance, scaleFactor);
+    let { sl: slR, tp: tpR } = pickReal(state.propBalance);
 
     if (tradeOutcomeStrategy === "burn_after_sl" && state.previousTradeOutcome === "SL") {
       slR = calculateBurnSL(state.propBalance, START, toDec(SINGLE_TRADE_STOP_RATIO));
     }
 
+    const coeff = challenge.brokerCoeff(state.propBalance, START, true);
     const outcomeR = pickOutcome(slR, tpR, tradeOutcomeStrategy);
 
     const balanceBeforeReal = state.propBalance;
     const brokerBalanceBeforeReal = state.brokerBalance;
 
     let brokerPL = toDec(0);
-    let singleStopHit = false;
 
     if (outcomeR === "SL") {
       state.propBalance = state.propBalance.minus(slR);
-      brokerPL = slR.times(0.6);
-      if (slR.gt(START.times(SINGLE_TRADE_STOP_RATIO))) singleStopHit = true;
+      brokerPL = slR.times(coeff);
     } else {
       state.propBalance = state.propBalance.plus(tpR);
-      brokerPL = tpR.times(0.6).neg();
+      brokerPL = tpR.times(coeff).neg();
     }
 
     state.brokerBalance = state.brokerBalance.plus(brokerPL);
-    state.clientTotalLots = state.clientTotalLots.plus(TRADE_LOTS.div(2));
+    state.clientTotalLots = state.clientTotalLots.plus(TRADE_LOTS);
 
     if (outcomeR === "TP") state.sequentialTPs++;
     else state.sequentialTPs = 0;
@@ -308,11 +308,10 @@ export function realPhase(state: EvalState, cfg: Omit<EvalConfig, "levels"> & { 
       brokerBalanceBefore: brokerBalanceBeforeReal,
       brokerBalanceAfter: state.brokerBalance,
       commission: COMMISSION,
-      lots: TRADE_LOTS.div(2),
-      singleStopHit,
+      lots: TRADE_LOTS,
     });
 
-    if (singleStopHit) {
+    if (state.propBalance.lte(START.minus(START.times(maxDrawdownRatio)))) {
       if (state.brokerBalance.gt(BROKER_SEED)) {
         const extract = state.brokerBalance.minus(BROKER_SEED);
         state.brokerBalance = state.brokerBalance.minus(extract);
@@ -330,7 +329,8 @@ export function realPhase(state: EvalState, cfg: Omit<EvalConfig, "levels"> & { 
     }
 
     // periodic payout cycle
-    if (state.propBalance.gte(START.times(REAL_PHASE_PROFIT_RATIO))) {
+    console.log("SHOULD PAY PAYOUT", Number(state.propBalance), Number(START.plus(START.times(payout))))
+    if (state.propBalance.gte(START.plus(START.times(payout)))) {
       state.customerProfit = state.customerProfit.plus(cfg.payout);
       state.propProfit = state.propProfit.minus(cfg.payout);
       state.payoutsCost = state.payoutsCost.plus(cfg.payout);

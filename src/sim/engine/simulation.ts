@@ -62,18 +62,12 @@ export function runSimulation({
   for (let clientIndex = 0; clientIndex < clientsNumber; clientIndex++) {
     const initialBalance = toDec(clientBalances[clientIndex]);
 
-    const lvl = challenge.levels(initialBalance);
-    const levels = lvl.getEvaluationLevels();
-    const realLevels = lvl.getRealLevels();
-    if (!levels || !realLevels) throw Error("Levels undefined cannot run simulation");
-
     const { challengeCost, tradeLots, brokerSeed } = challenge.economics(initialBalance);
     const { maxLossRatio, dailyLossRatio, targetProfitRatio } = challenge.risk();
 
     // scaled constants per client
     const COMMISSION_PER_TRADE = toDec(commissionPerTrade);
-    // FIXME: should not be fixed
-    const PAYOUT = toDec(initialBalance).times(0.02);
+    const payout = challenge.payoutPolicy(initialBalance).profitCyclePayoutPct()
 
     // per-client accumulators
     let propProfit = toDec(0);
@@ -119,6 +113,9 @@ export function runSimulation({
         });
       }
 
+      const lvl = challenge.levels(initialBalance);
+      const levels = lvl.getEvaluationLevels(propBalance);
+
       // eval state snapshot
       const state: EvalState = {
         tradesLeft,
@@ -152,7 +149,7 @@ export function runSimulation({
         commissionPerTrade: COMMISSION_PER_TRADE,
         tradeLots,
         brokerSeed,
-        payout: PAYOUT,
+        payout,
         maxDrawdownRatio: toDec(maxLossRatio),
         singleTradeStopRatio: toDec(dailyLossRatio),
         profitTargetRatio: toDec(targetProfitRatio),
@@ -160,7 +157,6 @@ export function runSimulation({
         tradeOutcomeStrategy,
         strategy,
         levels,
-        realLevels,
         shouldTrackHistory: shouldTrackHistory,
       };
 
@@ -211,7 +207,9 @@ export function runSimulation({
         // Real phase
         previousTradeOutcome = null;
         sequentialTPs = 0;
-        realPhase(res.state, { ...cfg, realLevels });
+        propBalance = initialBalance;
+        const realLevels = lvl.getRealLevels(propBalance);
+        realPhase(res.state, { ...cfg, levels: realLevels });
         ({
           tradesLeft,
           totalTradeNumber,

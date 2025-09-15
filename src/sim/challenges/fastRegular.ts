@@ -3,13 +3,13 @@ import type { Challenge, RiskProfile, LevelProvider, PayoutPolicy } from "../con
 import { D, LevelRule } from "../types";
 import { scaleLevels } from "../lib/levels";
 
-const evalLevels = (ib: D, scale: D): LevelRule[] => scaleLevels([
+const evalLevels = (_ib: D, bal: D, scale: D): LevelRule[] => scaleLevels([
   { maxBalance: 200000, sl: 8200, tp: 5000 },
   { maxBalance: 223000, sl: 6000, tp: 5000 },
-  { maxBalance: 228000, sl: 6000, tp: 0 },
+  { maxBalance: 228000, sl: 6000, tp: Number(toDec(228000).minus(bal)) },
 ], scale);
 
-const realLevels = (ib: D, scale: D): LevelRule[] => scaleLevels([
+const realLevels = (_ib: D, _bal: D, scale: D): LevelRule[] => scaleLevels([
   { maxBalance: 200000, sl: 7000, tp: 2000 },
   { maxBalance: 223000, sl: 7000, tp: 2000 },
 ], scale);
@@ -25,30 +25,28 @@ export const FastRegular: Challenge = {
     };
   },
   economics(initialBalance: D) {
-    /** keep your scaling: 900 fee on 200k scaled linearly, seed 6k scaled */
     const scale = scaleFactor(initialBalance);
     return {
-      challengeCost: toDec(900).times(scale),
-      tradeLots: toDec(8).times(scale),
+      challengeCost: toDec(900).times(scale).greaterThan(toDec(300)) ?  toDec(900).times(scale) : toDec(300),
+      tradeLots: toDec(4).times(scale),
       brokerSeed: toDec(6000).times(scale).greaterThan(toDec(2000)) ? toDec(6000).times(scale) : toDec(2000),
     };
   },
   levels(initialBalance: D): LevelProvider {
     const scale = scaleFactor(initialBalance);
     return {
-      getEvaluationLevels: () => evalLevels(initialBalance, scale),
-      getRealLevels: () => realLevels(initialBalance, scale),
+      getEvaluationLevels: (bal: D) => evalLevels(initialBalance, bal, scale),
+      getRealLevels: (bal: D) => realLevels(initialBalance, bal, scale),
     };
   },
-  brokerCoeff(bal: D, initialBalance: D): D {
-    const range = initialBalance.div(7).minus(initialBalance.div(10));
-    const pointInRange = bal.minus(initialBalance.div(10));
-    const percent = pointInRange.div(range);
-
-    if (percent.gte(1)) return toDec(3);
-    if (percent.lte(0)) return toDec(0.3);
-
-    return toDec(0.3).plus(percent.times(2.7));
+  brokerCoeff(bal: D, initialBalance: D, real = false): D {
+    let coeff = null;
+    if (real) {
+      coeff = initialBalance.eq(toDec(50000)) ? "0.7" : "0.56";
+    } else {
+      coeff = initialBalance.eq(toDec(200000)) ? "0.2" : initialBalance.eq(toDec(100000)) ? "0.215" : "0.26"
+    }
+    return toDec(coeff)
   },
   payoutPolicy(initialBalance: D): PayoutPolicy {
     const pct = toDec(0.02);

@@ -33,11 +33,11 @@ export const SuperPlus: Challenge = {
   levels(initialBalance: D): LevelProvider {
     const scale = scaleFactor(initialBalance);
     return {
-      getEvaluationLevels: () => levelsNew4(initialBalance, scale),
-      getRealLevels: () => [], // your preset had empty real levels
+      getEvaluationLevels: (_bal: D) => levelsNew4(initialBalance, scale),
+      getRealLevels: (_bal: D) => [], // your preset had empty real levels
     };
   },
-  brokerCoeff(bal: D, initialBalance: D): D {
+  brokerCoeff(bal: D, initialBalance: D, _real = false): D {
     const coeffs = [0.15, 0.25, 0.4, 0.65].map(c => toDec(c));
     const levels = this.levels(initialBalance).getEvaluationLevels();
     const index = levels.findIndex(level => bal.lte(level.maxBalance));
