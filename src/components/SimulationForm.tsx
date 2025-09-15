@@ -197,7 +197,7 @@ export function SimulationForm({
       clientsNumber: "500",
       tradesPerClient: "250",
       burnWonChallenges: false,
-      tradeOutcomeStrategy: "geometric_distance",
+      tradeOutcomeStrategy: "logarithmic_distance",
 
       challengePreset: "fast_regular",
       strategyPreset: "default",
@@ -402,7 +402,7 @@ export function SimulationForm({
                         <FormItem className="flex-1 min-w-[200px]">
                           <FormLabel>Trade Outcome Strategy</FormLabel>
                           <FormControl>
-                            <Select value={field.value || "geometric_distance"} onValueChange={field.onChange}>
+                            <Select value={field.value || "logarithmic_distance"} onValueChange={field.onChange}>
                               <SelectTrigger><SelectValue placeholder="Select strategy" /></SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="fifty_fifty">Fifty Fifty</SelectItem>

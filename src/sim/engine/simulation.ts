@@ -14,6 +14,20 @@ export function runSimulationAndDisplay(params: SimulationParams): SimulationRes
   return runSimulation(params);
 }
 
+function pushClosedChallenge(
+  shouldTrack: boolean,
+  history: SimulationTradeHistory | undefined,
+  state: EvalState
+) {
+  if (!shouldTrack || !history) return;
+  const ch = state.currentChallenge;
+  if (ch) {
+    history.challenges.push(ch);
+    // reset for the next challenge; the loop will re-begin with beginChallengeLog
+    state.currentChallenge = undefined;
+  }
+}
+
 export function runSimulation({
   clientsNumber,
   tradesPerClient,
@@ -194,6 +208,7 @@ export function runSimulation({
 
       if (res.kind === "lost") {
         challengesLost++;
+        pushClosedChallenge(shouldTrackHistory, tradeHistory, res.state);
         continue;
       }
 
@@ -207,6 +222,7 @@ export function runSimulation({
             propProfit = propProfit.minus(CHALLENGE_COST);
           }
           challengesWon++;
+          pushClosedChallenge(shouldTrackHistory, tradeHistory, res.state);
           continue;
         }
 
@@ -235,6 +251,7 @@ export function runSimulation({
 
         if (!challengeOngoing) {
           challengesLost++;
+          pushClosedChallenge(shouldTrackHistory, tradeHistory, res.state);
         }
         continue;
       }
@@ -248,10 +265,16 @@ export function runSimulation({
         finalBalance: propBalance,
         finalBrokerBalance: brokerBalance,
       });
+      // push the exhausted one
+      if (shouldTrackHistory && tradeHistory) {
+        tradeHistory.challenges.push(currentChallenge);
+      }
     }
 
-    // history total trades
-    if (shouldTrackHistory && tradeHistory) tradeHistory.totalTrades = totalTradeNumber;
+    if (shouldTrackHistory && tradeHistory) {
+      tradeHistory.totalTrades = totalTradeNumber;
+    }
+
 
     // aggregate per-client
     const clientNetProfit = customerProfit.minus(clientTotalAmountSpent);
@@ -267,11 +290,6 @@ export function runSimulation({
     totalAmountSpent = totalAmountSpent.plus(clientTotalAmountSpent);
     totalLots = totalLots.plus(clientTotalLots);
     totalCommissionCost = totalCommissionCost.plus(commissionCost);
-
-    // attach history if single-client
-    if (shouldTrackHistory && tradeHistory && currentChallenge) {
-      tradeHistory.challenges.push(currentChallenge);
-    }
   }
 
   // final aggregation (keep legacy fields and averages identical)
