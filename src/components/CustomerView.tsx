@@ -10,6 +10,7 @@ import { MultiLicenseResults } from "@/components/MultiLicenseResults";
 import { TradeHistoryModal } from "@/components/TradeHistoryModal";
 import { useToast } from "@/hooks/use-toast";
 import { SimulationResult, runSimulation } from "@/sim";
+import { runWithChallenge } from "@/sim/engine/run";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Decimal from "decimal.js";
 
@@ -86,7 +87,14 @@ export function CustomerView() {
         ]
       };
       
-      const result = runSimulation(values);
+      const result = runWithChallenge({
+        challengeId: 'fast_regular',
+        clientsNumber,
+        tradesPerClient,
+        commissionPerTrade: 10,
+        outcomeStrategy: 'fifty_fifty',
+        burnWonChallenges: false,
+      });
       setLatestResult(result);
       setResults((prev) => [result, ...prev]);
     } catch (error) {

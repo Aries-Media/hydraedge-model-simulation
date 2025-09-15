@@ -133,7 +133,7 @@ export function TradeHistoryModal({
                               >
                                 {(challenge.outcome ?? "ongoing").toUpperCase()}
                               </Badge>
-                              {end && <Badge variant="outline">{String(end).replaceAll("_", " ").toUpperCase()}</Badge>}
+                              {end && <Badge variant="outline">{String(end).replace(/_/g, " ").toUpperCase()}</Badge>}
                             </div>
                           </div>
                         </CardHeader>
@@ -191,11 +191,11 @@ export function TradeHistoryModal({
                                     return (
                                       <TableRow key={trade.tradeNumber}>
                                         <TableCell className="font-medium">#{trade.tradeNumber}</TableCell>
-                                        <TableCell>
-                                          <Badge variant={trade.phase === "evaluation" ? "secondary" : "outline"}>
-                                            {trade.phase === "evaluation" ? "DEMO" : "REAL"}
-                                          </Badge>
-                                        </TableCell>
+                                         <TableCell>
+                                           <Badge variant={trade.phase === "evaluation" ? "secondary" : "outline"} className={trade.phase === "real" ? "text-red-600 border-red-600" : ""}>
+                                             {trade.phase === "evaluation" ? "DEMO" : "REAL"}
+                                           </Badge>
+                                         </TableCell>
                                         <TableCell className="text-right">{fmtMoney(trade.balanceBefore)}</TableCell>
                                         <TableCell className="text-right">{fmtMoney(trade.sl)}</TableCell>
                                         <TableCell className="text-right">{fmtMoney(trade.tp)}</TableCell>
