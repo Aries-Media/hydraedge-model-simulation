@@ -26,7 +26,8 @@ export const SuperPlus: Challenge = {
     return {
       challengeCost: toDec(900).times(scale),
       tradeLots: toDec(6).times(scale),
-      brokerSeed: toDec(10000).times(scale).greaterThan(toDec(3000)) ? toDec(10000).times(scale) : toDec(3000),
+      // brokerSeed: toDec(10000).times(scale).greaterThan(toDec(3000)) ? toDec(10000).times(scale) : toDec(3000),
+      brokerSeed: toDec(10000).times(scale),
     };
   },
   levels(initialBalance: D): LevelProvider {
