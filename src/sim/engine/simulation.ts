@@ -24,37 +24,21 @@ function pushClosedChallenge(
 }
 
 export function runSimulation({
+  challenge,
   clientsNumber,
   tradesPerClient,
   commissionPerTrade = 10,
-  challenge,
-  initialBalance = MAX_CHALLENGE_SIZE,
   balanceDistribution,
   burnWonChallenges = true,
   tradeOutcomeStrategy = "logarithmic_distance",
   strategy,
 }: SimulationParams): SimulationResult {
 
-  const lvl = challenge.levels(initialBalance);
-  const levels = lvl.getEvaluationLevels(initialBalance);
-  const realLevels = lvl.getRealLevels(initialBalance);
-  if (!levels || !realLevels) throw Error("Levels undefined cannot run simulation");
 
-  const { challengeCost, tradeLots, brokerSeed } = challenge.economics(initialBalance);
-  const { maxLossRatio, dailyLossRatio, targetProfitRatio } = challenge.risk(initialBalance);
 
-  // client balances
-  let clientBalances: number[];
-  let effectiveDistribution: BalanceDistribution[] | undefined;
-
-  if (balanceDistribution && balanceDistribution.length > 0) {
-    clientBalances = generateClientBalances(clientsNumber, balanceDistribution);
-    effectiveDistribution = balanceDistribution;
-  } else {
-    const singleBalance =
-      typeof initialBalance === "number" ? initialBalance : initialBalance.toNumber();
-    clientBalances = Array(clientsNumber).fill(singleBalance);
-  }
+  if (!balanceDistribution) throw Error("Distribution undefined cannot run simulation");
+  let clientBalances = generateClientBalances(clientsNumber, balanceDistribution);
+  let effectiveDistribution = balanceDistribution;
 
   const shouldTrackHistory = clientsNumber === 1;
   let tradeHistory: SimulationTradeHistory | undefined = shouldTrackHistory
@@ -76,18 +60,25 @@ export function runSimulation({
   let totalNetProfit = toDec(0);
 
   for (let clientIndex = 0; clientIndex < clientsNumber; clientIndex++) {
-    const clientInitialBalance = clientBalances[clientIndex];
-    const scale = scaleFactor(toDec(clientInitialBalance));
+    const initialBalance = toDec(clientBalances[clientIndex]);
+    const scale = scaleFactor(initialBalance);
 
+    const lvl = challenge.levels(initialBalance);
+    const levels = lvl.getEvaluationLevels();
+    const realLevels = lvl.getRealLevels();
+    if (!levels || !realLevels) throw Error("Levels undefined cannot run simulation");
+
+    const { challengeCost, tradeLots, brokerSeed } = challenge.economics(initialBalance);
+    const { maxLossRatio, dailyLossRatio, targetProfitRatio } = challenge.risk();
 
     // scaled constants per client
     const CHALLENGE_COST = toDec(challengeCost).times(scale);
     const TRADE_LOTS = toDec(tradeLots).times(scale);
-    const START = toDec(clientInitialBalance);
+    const START = toDec(initialBalance);
     const BROKER_SEED = brokerSeed ? toDec(brokerSeed) : toDec(6_000).times(scale);
     const COMMISSION_PER_TRADE = toDec(commissionPerTrade);
     // FIXME: should not be fixed
-    const PAYOUT = toDec(clientInitialBalance).times(0.02);
+    const PAYOUT = toDec(initialBalance).times(0.02);
 
     // per-client accumulators
     let propProfit = toDec(0);
@@ -167,7 +158,6 @@ export function runSimulation({
         tradeLots: TRADE_LOTS,
         brokerSeed: BROKER_SEED,
         payout: PAYOUT,
-        scaleFactor: scale,
         maxDrawdownRatio: toDec(maxLossRatio),
         singleTradeStopRatio: toDec(dailyLossRatio),
         profitTargetRatio: toDec(targetProfitRatio),

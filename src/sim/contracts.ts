@@ -9,9 +9,9 @@ export interface RiskProfile {
 
 export interface LevelProvider {
   /** Evaluation phase tiers */
-  getEvaluationLevels(initialBalance: D): LevelRule[];
+  getEvaluationLevels(): LevelRule[];
   /** Real phase tiers (may be empty) */
-  getRealLevels(initialBalance: D): LevelRule[];
+  getRealLevels(): LevelRule[];
 }
 
 export interface PayoutPolicy {
@@ -34,7 +34,7 @@ export interface ChallengeMeta {
 export interface Challenge {
   id: string;
   meta?: ChallengeMeta;
-  risk(initialBalance: D): RiskProfile;
+  risk(): RiskProfile;
   economics(initialBalance: D): {
     challengeCost: D; tradeLots: D; brokerSeed: D;
   };

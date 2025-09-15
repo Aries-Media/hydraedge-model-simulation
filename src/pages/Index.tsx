@@ -32,7 +32,6 @@ type UIOnSubmit =
       clientsNumber: number;
       tradesPerClient: number;
       commissionPerTrade: number;
-      initialBalance: number;
       balanceDistribution?: BalanceDistribution[];
       burnWonChallenges: boolean;
     }
@@ -50,7 +49,6 @@ type UIOnSubmit =
       clientsNumber: number;
       tradesPerClient: number;
       commissionPerTrade: number;
-      initialBalance: number;
       balanceDistribution?: BalanceDistribution[];
       burnWonChallenges: boolean;
 
@@ -80,7 +78,6 @@ const Index = () => {
           clientsNumber: payload.clientsNumber,
           tradesPerClient: payload.tradesPerClient,
           commissionPerTrade: payload.commissionPerTrade,
-          initialBalance: payload.initialBalance,
           balanceDistribution: payload.balanceDistribution,
           burnWonChallenges: payload.burnWonChallenges,
         });
@@ -136,7 +133,6 @@ const Index = () => {
           clientsNumber: payload.clientsNumber,
           tradesPerClient: payload.tradesPerClient,
           commissionPerTrade: payload.commissionPerTrade,
-          initialBalance: payload.initialBalance,
           balanceDistribution: payload.balanceDistribution,
           burnWonChallenges: payload.burnWonChallenges,
         });

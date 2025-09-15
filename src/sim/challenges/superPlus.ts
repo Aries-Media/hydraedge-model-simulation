@@ -1,27 +1,20 @@
 import { toDec, scaleFactor } from "../constants";
 import type { Challenge, RiskProfile, LevelProvider, PayoutPolicy } from "../contracts";
-import type { D, LevelRule } from "../types";
+import { D, LevelRule } from "../types";
+import { scaleLevels } from "../lib/levels";
 
-// const levelsNew4 = (initialBalance: D): LevelRule[] => ([
-//   { maxBalance: toDec(initialBalance), sl: toDec(10400), tp: toDec(8000) },
-//   { maxBalance: toDec(208000), sl: toDec(10600), tp: toDec(7500) },
-//   { maxBalance: toDec(215800), sl: toDec(10800), tp: toDec(7500) },
-//   { maxBalance: toDec(223600), sl: toDec(11200), tp: toDec(7800) },
-//   { maxBalance: toDec(230000), sl: toDec(11600), tp: undefined },
-// ]);
-
-const levelsNew4 = (initialBalance: D): LevelRule[] => ([
-  { maxBalance: toDec(initialBalance), sl: toDec(10400), tp: toDec(8000) },
-  { maxBalance: toDec(208000), sl: toDec(10600), tp: toDec(7500) },
-  { maxBalance: toDec(215800), sl: toDec(10800), tp: toDec(7500) },
-  { maxBalance: toDec(223600), sl: toDec(11200), tp: toDec(7000) },
-  { maxBalance: toDec(230000), sl: toDec(11600), tp: undefined },
-]);
+const levelsNew4 = (initialBalance: D, scale: D): LevelRule[] => scaleLevels([
+  { maxBalance: 200000, sl: 10400, tp: 8000 },
+  { maxBalance: 208000, sl: 10600, tp: 7500 },
+  { maxBalance: 215800, sl: 10800, tp: 7500 },
+  { maxBalance: 223600, sl: 11200, tp: 7000 },
+  { maxBalance: 230000, sl: 11600, tp: 0 },
+], scale);
 
 export const SuperPlus: Challenge = {
   id: "super_plus",
   meta: { recommendedStrategyId: "new4", label: "Super Plus" },
-  risk(initialBalance: D): RiskProfile {
+  risk(): RiskProfile {
     return {
       maxLossRatio: toDec(0.07),
       dailyLossRatio: toDec(0.05),
@@ -37,8 +30,9 @@ export const SuperPlus: Challenge = {
     };
   },
   levels(initialBalance: D): LevelProvider {
+    const scale = scaleFactor(initialBalance);
     return {
-      getEvaluationLevels: () => levelsNew4(initialBalance),
+      getEvaluationLevels: () => levelsNew4(initialBalance, scale),
       getRealLevels: () => [], // your preset had empty real levels
     };
   },
@@ -47,7 +41,6 @@ export const SuperPlus: Challenge = {
     const levels = this.levels(initialBalance).getEvaluationLevels();
     const index = levels.findIndex(level => bal.lte(level.maxBalance));
     const coeff = coeffs[index >= 0 ? index : coeffs.length - 1];
-    console.log("COEFF FOR BALANCE", Number(bal), ":", Number(coeff))
     return coeff;
   },
   payoutPolicy(initialBalance: D): PayoutPolicy {

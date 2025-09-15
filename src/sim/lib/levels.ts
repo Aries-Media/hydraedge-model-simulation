@@ -1,3 +1,4 @@
+import Decimal from "decimal.js";
 import type { LevelRule, D } from "../types";
 import { toDec } from "../constants";
 
@@ -10,25 +11,32 @@ import { toDec } from "../constants";
 export const makePicker = (levels: LevelRule[]) => {
   const last = levels[levels.length - 1];
 
-  return (bal: D, scaleFactor: D) => {
+  return (bal: D) => {
     for (const lvl of levels) {
-      if (bal.lte(lvl.maxBalance.times(scaleFactor))) {
-        const sl = lvl.sl.times(scaleFactor);
+      if (bal.lte(lvl.maxBalance)) {
+        const sl = lvl.sl;
         const tp =
           lvl.tp === undefined
-            ? lvl.maxBalance.times(scaleFactor).minus(bal).plus(50)
-            : lvl.tp.times(scaleFactor);
+            ? lvl.maxBalance.minus(bal).plus(50)
+            : lvl.tp;
         return { sl, tp };
       }
     }
 
     // Fallback to last rule
-    const sl = last.sl.times(scaleFactor);
+    const sl = last.sl;
     const tp =
       last.tp === undefined
-        ? last.maxBalance.times(scaleFactor).minus(bal)
-        : last.tp.times(scaleFactor);
+        ? last.maxBalance.minus(bal)
+        : last.tp;
     return { sl, tp };
   };
 };
 
+export const scaleLevels = (levels: { maxBalance: number; sl: number; tp: number }[], scale: Decimal) => {
+  return levels.map(l => ({
+    maxBalance: toDec(l.maxBalance).times(scale),
+    sl: toDec(l.sl).times(scale),
+    tp: toDec(l.tp).times(scale)
+  }))
+};

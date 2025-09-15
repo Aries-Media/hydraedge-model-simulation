@@ -28,7 +28,6 @@ export interface EvalConfig {
   tradeLots: D;
   brokerSeed: D;
   payout: D;
-  scaleFactor: D;
   maxDrawdownRatio: D;
   singleTradeStopRatio: D; // daily loss
   profitTargetRatio: D;
@@ -80,15 +79,12 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
     tradeLots: TRADE_LOTS,
     brokerSeed: BROKER_SEED,
     payout: PAYOUT,
-    scaleFactor,
     maxDrawdownRatio: MAX_DRAWDOWN_RATIO,
     singleTradeStopRatio: SINGLE_TRADE_STOP_RATIO,
     profitTargetRatio: PROFIT_TARGET_RATIO,
     burnWonChallenges,
     tradeOutcomeStrategy,
-    strategy,
     levels,
-    shouldTrackHistory,
   } = cfg;
 
   // generate trade
@@ -96,7 +92,7 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
   state.totalTradeNumber++;
 
   const pickLevels = makePicker(levels);
-  let { sl, tp } = pickLevels(state.propBalance, scaleFactor);
+  let { sl, tp } = pickLevels(state.propBalance);
 
   // burn-after-sl: escalate SL on immediate next trade
   if (tradeOutcomeStrategy === "burn_after_sl" && state.previousTradeOutcome === "SL") {
@@ -104,7 +100,6 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
   }
 
   const coeff = challenge.brokerCoeff(state.propBalance, START) 
-  console.log("GOT IT", Number(coeff))
   const outcome = pickOutcome(sl, tp, tradeOutcomeStrategy);
 
   let brokerPL = toDec(0);

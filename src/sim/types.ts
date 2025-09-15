@@ -15,17 +15,17 @@ export interface LevelRule {
   tp: D | undefined;
 }
 
+
 export interface BalanceDistribution {
   balance: number;
   percentage: number;
 }
 
 export interface SimulationParams {
+  challenge: Challenge;
   clientsNumber: number;
   tradesPerClient: number;
   commissionPerTrade?: D | number;
-  challenge: Challenge;
-  initialBalance: D;
   balanceDistribution?: BalanceDistribution[];
   burnWonChallenges?: boolean;
   tradeOutcomeStrategy?:

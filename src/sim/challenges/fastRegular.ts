@@ -1,21 +1,23 @@
-import { toDec, scaleFactor, MAX_CHALLENGE_SIZE } from "../constants";
+import { toDec, scaleFactor } from "../constants";
 import type { Challenge, RiskProfile, LevelProvider, PayoutPolicy } from "../contracts";
-import type { D, LevelRule } from "../types";
+import { D, LevelRule } from "../types";
+import { scaleLevels } from "../lib/levels";
 
-const evalLevels = (ib: D): LevelRule[] => ([
-  { maxBalance: toDec(MAX_CHALLENGE_SIZE), sl: toDec(8200), tp: toDec(5000) },
-  { maxBalance: toDec(223000), sl: toDec(6000), tp: toDec(5000) },
-  { maxBalance: toDec(228000), sl: toDec(6000), tp: undefined },
-]);
-const realLevels = (ib: D): LevelRule[] => ([
-  { maxBalance: toDec(MAX_CHALLENGE_SIZE), sl: toDec(7000), tp: toDec(2000) },
-  { maxBalance: toDec(223000), sl: toDec(7000), tp: toDec(2000) },
-]);
+const evalLevels = (ib: D, scale: D): LevelRule[] => scaleLevels([
+  { maxBalance: 200000, sl: 8200, tp: 5000 },
+  { maxBalance: 223000, sl: 6000, tp: 5000 },
+  { maxBalance: 228000, sl: 6000, tp: 0 },
+], scale);
+
+const realLevels = (ib: D, scale: D): LevelRule[] => scaleLevels([
+  { maxBalance: 200000, sl: 7000, tp: 2000 },
+  { maxBalance: 223000, sl: 7000, tp: 2000 },
+], scale);
 
 export const FastRegular: Challenge = {
   id: "fast_regular",
   meta: { recommendedStrategyId: "default", label: "Fast Regular" },
-  risk(initialBalance: D): RiskProfile {
+  risk(): RiskProfile {
     return {
       maxLossRatio: toDec(0.07),
       dailyLossRatio: toDec(0.04),
@@ -32,14 +34,15 @@ export const FastRegular: Challenge = {
     };
   },
   levels(initialBalance: D): LevelProvider {
+    const scale = scaleFactor(initialBalance);
     return {
-      getEvaluationLevels: () => evalLevels(initialBalance),
-      getRealLevels: () => realLevels(initialBalance),
+      getEvaluationLevels: () => evalLevels(initialBalance, scale),
+      getRealLevels: () => realLevels(initialBalance, scale),
     };
   },
   brokerCoeff(bal: D, initialBalance: D): D {
-    const range = start.div(7).minus(start.div(10));
-    const pointInRange = bal.minus(start.div(10));
+    const range = initialBalance.div(7).minus(initialBalance.div(10));
+    const pointInRange = bal.minus(initialBalance.div(10));
     const percent = pointInRange.div(range);
 
     if (percent.gte(1)) return toDec(3);
