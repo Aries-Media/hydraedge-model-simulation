@@ -1,8 +1,5 @@
-import type { D, LevelRule, SimulationParams } from "../types";
+import type { D, LevelRule } from "../types";
 import {
-  BROKER_MARGIN_FACTOR,
-  REAL_PHASE_PROFIT_RATIO,
-  RATIO_MARGIN_INJECT,
   toDec
 } from "../constants";
 import { Challenge } from "../contracts";
@@ -56,7 +53,6 @@ export interface EvalState {
   challengeOngoing: boolean;
   marginMoved: boolean;
   previousTradeOutcome: "SL" | "TP" | null;
-  sequentialTPs: number;
 
   // Aggregates for customer & prop
   propProfit: D;
@@ -119,20 +115,7 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
   state.brokerBalance = state.brokerBalance.plus(brokerPL).minus(COMMISSION);
   state.commissionCost = state.commissionCost.plus(COMMISSION);
   state.clientTotalLots = state.clientTotalLots.plus(TRADE_LOTS.times(coeff));
-
-  // TP streak logic for "new4"
-  if (outcome === "TP") state.sequentialTPs++;
-  else state.sequentialTPs = 0;
   state.previousTradeOutcome = outcome;
-
-  // margin injection
-  const marginMovedThisTrade =
-    !state.marginMoved && state.propBalance.gte(START.times(RATIO_MARGIN_INJECT));
-  if (marginMovedThisTrade) {
-    const BROKER_BONUS = cfg.brokerSeed.times(BROKER_MARGIN_FACTOR);
-    state.brokerBalance = state.brokerBalance.plus(BROKER_BONUS);
-    state.marginMoved = true;
-  }
 
   // log trade
   logTrade({
@@ -150,7 +133,6 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
     commission: COMMISSION,
     lots: TRADE_LOTS,
     singleStopHit,
-    marginMoved: marginMovedThisTrade,
   });
 
   // lifetime checks
@@ -163,25 +145,24 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
 
   if (singleStopHit || drawdownHit) {
     // challenge lost
-    if (state.brokerBalance.gt(BROKER_SEED)) {
-      const extract = state.brokerBalance.minus(BROKER_SEED);
-      state.brokerBalance = state.brokerBalance.minus(extract);
-      state.customerProfit = state.customerProfit.plus(extract);
-      state.extractedBrokerProfit = state.extractedBrokerProfit.plus(extract);
-    }
+    const extract = state.brokerBalance.minus(BROKER_SEED);
     finalizeLost(state.currentChallenge, {
       endReason: singleStopHit ? "single_stop" : "max_drawdown",
       finalBalance: state.propBalance,
       finalBrokerBalance: state.brokerBalance,
       brokerSeed: BROKER_SEED,
+      profit: extract,
     });
+    if (state.brokerBalance.gt(BROKER_SEED)) {
+      state.brokerBalance = state.brokerBalance.minus(extract);
+      state.customerProfit = state.customerProfit.plus(extract);
+      state.extractedBrokerProfit = state.extractedBrokerProfit.plus(extract);
+    }
     state.challengeOngoing = false;
     return { kind: "lost", state, reason: singleStopHit ? "single_stop" : "max_drawdown" };
   }
 
   if (profitTargetHit) {
-    state.propBalance = START;
-
     // challenge won
     if (burnWonChallenges) {
       let brokerLossReimb = toDec(0);
@@ -228,10 +209,17 @@ export function evaluationStep(state: EvalState, cfg: EvalConfig): EvaluationSte
       }
 
       state.challengeOngoing = false;
-      return { kind: "won", state };
+    } else {
+      finalizeWon(state.currentChallenge, {
+        payout: toDec(0),
+        refund: toDec(0),
+        brokerReimbursement: toDec(0),
+        finalBalance: state.propBalance,
+        finalBrokerBalance: state.brokerBalance,
+      });
     }
 
-    // otherwise hand off to real phase in orchestrator
+    state.propBalance = START;
     return { kind: "won", state };
   }
 
@@ -257,6 +245,12 @@ export function realPhase(state: EvalState, cfg: EvalConfig) {
   } = cfg;
 
   const pickReal = makePicker(levels);
+  
+  const movingMargin = toDec(START.eq(200000) ? 3500 : START.eq(100000) ? 1800 : 1000);
+  state.brokerBalance = state.brokerBalance.plus(movingMargin);
+
+  const balanceBeforeReal = state.propBalance;
+  const brokerBalanceBeforeReal = state.brokerBalance;
 
   while (state.tradesLeft > 0) {
     state.tradesLeft--;
@@ -275,11 +269,7 @@ export function realPhase(state: EvalState, cfg: EvalConfig) {
     const coeff = challenge.brokerCoeff(state.propBalance, START, true);
     const outcomeR = pickOutcome(slR, tpR, tradeOutcomeStrategy);
 
-    const balanceBeforeReal = state.propBalance;
-    const brokerBalanceBeforeReal = state.brokerBalance;
-
     let brokerPL = toDec(0);
-
     if (outcomeR === "SL") {
       state.propBalance = state.propBalance.minus(slR);
       brokerPL = slR.times(coeff);
@@ -287,12 +277,9 @@ export function realPhase(state: EvalState, cfg: EvalConfig) {
       state.propBalance = state.propBalance.plus(tpR);
       brokerPL = tpR.times(coeff).neg();
     }
-
-    state.brokerBalance = state.brokerBalance.plus(brokerPL);
-    state.clientTotalLots = state.clientTotalLots.plus(TRADE_LOTS);
-
-    if (outcomeR === "TP") state.sequentialTPs++;
-    else state.sequentialTPs = 0;
+    state.brokerBalance = state.brokerBalance.plus(brokerPL).minus(COMMISSION);
+    state.commissionCost = state.commissionCost.plus(COMMISSION);
+    state.clientTotalLots = state.clientTotalLots.plus(TRADE_LOTS).times(coeff);
     state.previousTradeOutcome = outcomeR;
 
     logTrade({
@@ -312,29 +299,31 @@ export function realPhase(state: EvalState, cfg: EvalConfig) {
     });
 
     if (state.propBalance.lte(START.minus(START.times(maxDrawdownRatio)))) {
-      if (state.brokerBalance.gt(BROKER_SEED)) {
-        const extract = state.brokerBalance.minus(BROKER_SEED);
-        state.brokerBalance = state.brokerBalance.minus(extract);
-        state.customerProfit = state.customerProfit.plus(extract);
-        state.extractedBrokerProfit = state.extractedBrokerProfit.plus(extract);
-      }
+      const extract = state.brokerBalance.minus(BROKER_SEED);
+      const profit = extract.minus(movingMargin).minus(challenge.economics(START).challengeCost);
       finalizeLost(state.currentChallenge, {
-        endReason: "single_stop",
+        endReason: "max_drawdown",
         finalBalance: state.propBalance,
         finalBrokerBalance: state.brokerBalance,
         brokerSeed: BROKER_SEED,
+        profit,
       });
+      if (state.brokerBalance.gt(movingMargin)) {
+        state.brokerBalance = state.brokerBalance.minus(extract);
+        state.customerProfit = state.customerProfit.plus(profit);
+        state.extractedBrokerProfit = state.extractedBrokerProfit.plus(profit);
+      }
       state.challengeOngoing = false;
       break;
     }
 
-    // periodic payout cycle
-    console.log("SHOULD PAY PAYOUT", Number(state.propBalance), Number(START.plus(START.times(payout))))
+    // payout cycle
     if (state.propBalance.gte(START.plus(START.times(payout)))) {
-      state.customerProfit = state.customerProfit.plus(cfg.payout);
-      state.propProfit = state.propProfit.minus(cfg.payout);
-      state.payoutsCost = state.payoutsCost.plus(cfg.payout);
+      const payoutAmount = START.times(payout).times("0.8");
+      state.propProfit = state.propProfit.minus(payoutAmount);
+      state.payoutsCost = state.payoutsCost.plus(payoutAmount);
       state.propBalance = START;
+      state.brokerBalance = movingMargin;
     }
   }
 }

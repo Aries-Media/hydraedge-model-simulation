@@ -140,17 +140,21 @@ export function TradeHistoryModal({
 
                         <CardContent>
                           {/* Challenge Summary */}
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 text-sm">
+                          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 text-sm">
                             <div><span className="font-medium">Start Balance:</span> {fmtMoney(challenge.startBalance)}</div>
                             <div>
                               <span className="font-medium">Final Balance:</span>{" "}
                               {typeof challenge.finalBalance === "number" ? fmtMoney(challenge.finalBalance) : "N/A"}
                             </div>
                             <div><span className="font-medium">Broker Start:</span> {fmtMoney(challenge.brokerStartBalance)}</div>
+                            <div><span className="font-medium">Broker Final:</span> {fmtMoney(challenge.finalBrokerBalance)}</div>
                             <div><span className="font-medium">Trades:</span> {challenge.trades?.length ?? 0}</div>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 text-sm bg-muted/50 p-3 rounded">
+                              {challenge.extractedBrokerProfit ? (
+                                <div><span className="font-medium">Extracted Profit:</span> {fmtMoney(challenge.extractedBrokerProfit)}</div>
+                              ) : null}
                               {challenge.payout ? (
                                 <div><span className="font-medium">Payout:</span> {fmtMoney(challenge.payout)}</div>
                               ) : null}
@@ -159,9 +163,6 @@ export function TradeHistoryModal({
                               ) : null}
                               {challenge.brokerReimbursement ? (
                                 <div><span className="font-medium">Broker Reimb:</span> {fmtMoney(challenge.brokerReimbursement)}</div>
-                              ) : null}
-                              {challenge.extractedBrokerProfit ? (
-                                <div><span className="font-medium">Extracted Profit:</span> {fmtMoney(challenge.extractedBrokerProfit)}</div>
                               ) : null}
                             </div>
 

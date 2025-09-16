@@ -92,7 +92,6 @@ export function runSimulation({
 
     let totalTradeNumber = 0;
     let previousTradeOutcome: "SL" | "TP" | null = null;
-    let sequentialTPs = 0;
 
     while (tradesLeft > 0) {
       if (!challengeOngoing) {
@@ -104,7 +103,6 @@ export function runSimulation({
         propBalance = initialBalance;
         brokerBalance = brokerSeed;
         previousTradeOutcome = null;
-        sequentialTPs = 0;
 
         currentChallenge = beginChallengeLog(shouldTrackHistory, {
           challengeNumber: challengesBought,
@@ -131,7 +129,6 @@ export function runSimulation({
         challengeOngoing: true,
         marginMoved: false,
         previousTradeOutcome,
-        sequentialTPs,
 
         propProfit,
         customerProfit,
@@ -172,7 +169,6 @@ export function runSimulation({
         commissionCost,
         clientTotalLots,
         previousTradeOutcome,
-        sequentialTPs,
         propProfit,
         customerProfit,
         refundsCost,
@@ -183,7 +179,6 @@ export function runSimulation({
         challengeOngoing,
       } = res.state);
 
-
       if (res.kind === "lost") {
         challengesLost++;
         pushClosedChallenge(shouldTrackHistory, tradeHistory, res.state);
@@ -191,22 +186,20 @@ export function runSimulation({
       }
 
       if (res.kind === "won") {
+        challengesWon++;
         // If burnWonChallenges, the evaluationStep already finalized outcome and we’re done.
         if (burnWonChallenges) {
           // Handle "new4" exception: do not count as bought if 4+ TPs streak
-          if (strategy === "new4" && sequentialTPs >= 4) {
-            // challengesBought--; // undo
+          if (strategy === "new4") {
             clientTotalAmountSpent = clientTotalAmountSpent.minus(challengeCost);
             propProfit = propProfit.minus(challengeCost);
           }
-          challengesWon++;
           pushClosedChallenge(shouldTrackHistory, tradeHistory, res.state);
           continue;
         }
 
         // Real phase
         previousTradeOutcome = null;
-        sequentialTPs = 0;
         propBalance = initialBalance;
         const realLevels = lvl.getRealLevels(propBalance);
         realPhase(res.state, { ...cfg, levels: realLevels });
@@ -218,7 +211,6 @@ export function runSimulation({
           commissionCost,
           clientTotalLots,
           previousTradeOutcome,
-          sequentialTPs,
           propProfit,
           customerProfit,
           refundsCost,
@@ -229,14 +221,10 @@ export function runSimulation({
           challengeOngoing,
         } = res.state);
 
-        if (!challengeOngoing) {
-          challengesLost++;
-          pushClosedChallenge(shouldTrackHistory, tradeHistory, res.state);
-        }
+        challengesLost++;
+        pushClosedChallenge(shouldTrackHistory, tradeHistory, res.state);
         continue;
       }
-
-      // continue case
     }
 
     // if challenge still open at the end, finalize as exhausted

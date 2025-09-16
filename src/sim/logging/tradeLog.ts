@@ -67,6 +67,7 @@ export function finalizeLost(
     finalBalance: D;
     finalBrokerBalance: D;
     brokerSeed: D;
+    profit: D;
   },
 ) {
   if (!challenge) return;
@@ -74,10 +75,7 @@ export function finalizeLost(
   challenge.endReason = args.endReason;
   challenge.finalBalance = args.finalBalance.toNumber();
   challenge.finalBrokerBalance = args.finalBrokerBalance.toNumber();
-  challenge.extractedBrokerProfit =
-    args.finalBrokerBalance.gt(args.brokerSeed)
-      ? args.finalBrokerBalance.minus(args.brokerSeed).toNumber()
-      : 0;
+  challenge.extractedBrokerProfit = args.profit.toNumber();
 }
 
 export function finalizeWon(
